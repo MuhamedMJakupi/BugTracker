@@ -108,7 +108,6 @@ public class UserService extends AbstractService {
         }
     }
 
-    // Helper: check if email exists excluding specific user (for updates)
     private boolean emailExistsExcludingUser(String email, UUID excludeUserId) throws Exception {
         //String sql = "SELECT COUNT(*) FROM users WHERE email = ? AND user_id != ?";
         try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.EMAIL_EXISTS_EXCLUDING_USER)) {

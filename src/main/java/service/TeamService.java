@@ -214,13 +214,6 @@ public class TeamService extends AbstractService {
         return teams;
     }
 
-    public void removeAllTeamMembers(UUID teamId) throws Exception {
-        try (Connection con = getConnection();
-             PreparedStatement ps = con.prepareStatement(SQL.REMOVE_ALL_TEAM_MEMBERS)) {
-            ps.setString(1, teamId.toString());
-            ps.executeUpdate();
-        }
-    }
 
     private boolean isUserTeamMember(UUID teamId, UUID userId) throws SQLException {
         try (Connection con = getConnection();

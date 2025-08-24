@@ -22,7 +22,6 @@ public class Issue {
 
     public Issue() {}
 
-    // Minimal constructor
     public Issue(UUID projectId, String title, String description, UUID reporterId) {
         this.issueId = UUID.randomUUID();
         this.createdAt = LocalDateTime.now();
@@ -38,7 +37,6 @@ public class Issue {
         // assigneeId and dueDate remain null (to be set later)
     }
 
-    // Full constructor when all details are known
     public Issue(UUID projectId, String title, String description, UUID reporterId,
                  UUID assigneeId, int statusId, int priorityId, LocalDate dueDate) {
         this.issueId = UUID.randomUUID();

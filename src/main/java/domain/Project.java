@@ -16,9 +16,9 @@ public class Project {
     public Project() {}
 
     public Project(String name, String description, UUID ownerId) {
-//        this.projectId = UUID.randomUUID();
-//        this.createdAt = LocalDateTime.now();
-//        this.updatedAt = LocalDateTime.now();
+        this.projectId = UUID.randomUUID();
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
 
         this.name = name;
         this.description = description;
