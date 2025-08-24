@@ -35,19 +35,5 @@ public enum IssueStatus {
         throw new IllegalArgumentException("Invalid status name: " + name);
     }
 
-    public boolean canTransitionTo(IssueStatus newStatus) {
-        switch (this) {
-            case TODO:
-                return newStatus == IN_PROGRESS || newStatus == CANCELLED;
-            case IN_PROGRESS:
-                return newStatus == DONE || newStatus == TODO || newStatus == CANCELLED;
-            case DONE:
-                return newStatus == TODO; // Can reopen
-            case CANCELLED:
-                return newStatus == TODO; // Can reopen
-            default:
-                return false;
-        }
-    }
 }
 

@@ -4,7 +4,9 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 public class Project {
+
     private UUID projectId;
+
     private String name;
     private String description;
     private UUID ownerId;
@@ -14,9 +16,9 @@ public class Project {
     public Project() {}
 
     public Project(String name, String description, UUID ownerId) {
-        this.projectId = UUID.randomUUID();
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+//        this.projectId = UUID.randomUUID();
+//        this.createdAt = LocalDateTime.now();
+//        this.updatedAt = LocalDateTime.now();
 
         this.name = name;
         this.description = description;
@@ -50,7 +52,6 @@ public class Project {
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 
-    // Helper method to update timestamp
     private void updateTimestamp() {
         this.updatedAt = LocalDateTime.now();
     }

@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 public class Issue {
+
     private UUID issueId;
     private UUID projectId;
     private String title;
@@ -108,7 +109,6 @@ public class Issue {
         updateTimestamp();
     }
 
-    // Helper methods to get enums
     public IssueStatus getStatus() {
         return IssueStatus.fromId(this.statusId);
     }

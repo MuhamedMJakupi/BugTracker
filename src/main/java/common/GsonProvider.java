@@ -11,6 +11,7 @@ import jakarta.ws.rs.ext.ContextResolver;
 import jakarta.ws.rs.ext.Provider;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 @Provider
@@ -22,6 +23,7 @@ public class GsonProvider implements ContextResolver<Gson> {
     public GsonProvider() {
         gson = new GsonBuilder()
                 .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+                .registerTypeAdapter(LocalDate.class, new LocalDateAdapter())  // ADD THIS LINE
                 .setPrettyPrinting()
                 .create();
     }
@@ -31,7 +33,6 @@ public class GsonProvider implements ContextResolver<Gson> {
         return gson;
     }
 
-    // Custom TypeAdapter for LocalDateTime
     private static class LocalDateTimeAdapter extends TypeAdapter<LocalDateTime> {
         private static final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
@@ -51,6 +52,29 @@ public class GsonProvider implements ContextResolver<Gson> {
                 return null;
             } else {
                 return LocalDateTime.parse(in.nextString(), formatter);
+            }
+        }
+    }
+
+    private static class LocalDateAdapter extends TypeAdapter<LocalDate> {
+        private static final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE;
+
+        @Override
+        public void write(JsonWriter out, LocalDate value) throws IOException {
+            if (value == null) {
+                out.nullValue();
+            } else {
+                out.value(value.format(formatter));
+            }
+        }
+
+        @Override
+        public LocalDate read(JsonReader in) throws IOException {
+            if (in.peek() == com.google.gson.stream.JsonToken.NULL) {
+                in.nextNull();
+                return null;
+            } else {
+                return LocalDate.parse(in.nextString(), formatter);
             }
         }
     }

@@ -9,6 +9,9 @@ public class JAXRSConfig extends ResourceConfig {
     public JAXRSConfig() {
         packages("resource");
         register(GsonProvider.class); // Register your custom Gson provider
+
+        // Force refresh of providers and resources
+        property("jersey.config.server.provider.scanning.recursive", true);
     }
 }
 

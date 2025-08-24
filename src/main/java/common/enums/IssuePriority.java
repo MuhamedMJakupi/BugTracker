@@ -35,12 +35,5 @@ public enum IssuePriority {
         throw new IllegalArgumentException("Invalid priority name: " + name);
     }
 
-    public boolean isHigherThan(IssuePriority other) {
-        return this.id > other.id;
-    }
-
-    public boolean isLowerThan(IssuePriority other) {
-        return this.id < other.id;
-    }
 }
 
