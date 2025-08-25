@@ -6,6 +6,7 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import service.IssueLabelServiceImpl;
+import service.IssueService;
 import service.IssueServiceImpl;
 
 import java.util.Arrays;
@@ -18,7 +19,7 @@ import java.util.UUID;
 @Consumes(MediaType.APPLICATION_JSON)
 public class IssueResource extends AbstractResource {
 
-    private final IssueServiceImpl issueService = new IssueServiceImpl();
+    private final IssueService issueService = new IssueServiceImpl();
 
     @GET
     public Response getAllIssues() {

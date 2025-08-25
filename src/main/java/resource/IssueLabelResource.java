@@ -2,6 +2,7 @@ package resource;
 
 import common.AbstractResource;
 import domain.IssueLabel;
+import service.IssueLabelService;
 import service.IssueLabelServiceImpl;
 
 import jakarta.ws.rs.*;
@@ -14,7 +15,7 @@ import java.util.*;
 @Consumes(MediaType.APPLICATION_JSON)
 public class IssueLabelResource extends AbstractResource {
 
-    private final IssueLabelServiceImpl labelService = new IssueLabelServiceImpl();
+    private final IssueLabelService labelService = new IssueLabelServiceImpl();
 
     @GET
     public Response getAllLabels() {

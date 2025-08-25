@@ -7,6 +7,7 @@ import domain.User;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import service.TeamService;
 import service.TeamServiceImpl;
 
 import java.util.Arrays;
@@ -19,7 +20,7 @@ import java.util.UUID;
 @Consumes(MediaType.APPLICATION_JSON)
 public class TeamResource extends AbstractResource {
 
-    private final TeamServiceImpl teamService = new TeamServiceImpl();
+    private final TeamService teamService = new TeamServiceImpl();
 
     @GET
     public Response getAllTeams() {

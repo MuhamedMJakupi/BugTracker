@@ -2,6 +2,7 @@ package resource;
 
 import common.AbstractResource;
 import domain.User;
+import service.UserService;
 import service.UserServiceImpl;
 
 import jakarta.ws.rs.*;
@@ -15,7 +16,7 @@ import java.util.*;
 @Consumes(MediaType.APPLICATION_JSON)
 public class UserResource extends AbstractResource {
 
-    private final UserServiceImpl userService = new UserServiceImpl();
+    private final UserService userService = new UserServiceImpl();
 
     @GET
     public Response getAllUsers() {

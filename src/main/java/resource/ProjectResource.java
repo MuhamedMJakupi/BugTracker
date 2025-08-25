@@ -5,6 +5,7 @@ import domain.Project;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import service.ProjectService;
 import service.ProjectServiceImpl;
 
 import java.util.Arrays;
@@ -17,7 +18,7 @@ import java.util.UUID;
 @Consumes(MediaType.APPLICATION_JSON)
 public class ProjectResource extends AbstractResource {
 
-    private final ProjectServiceImpl projectService = new ProjectServiceImpl();
+    private final ProjectService projectService = new ProjectServiceImpl();
 
     @GET
     public Response getAllProjects() {

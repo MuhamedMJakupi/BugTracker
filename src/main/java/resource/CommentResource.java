@@ -5,6 +5,8 @@ import domain.Comment;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import service.AttachmentService;
+import service.CommentService;
 import service.CommentServiceImpl;
 
 import java.util.Arrays;
@@ -17,7 +19,7 @@ import java.util.UUID;
 @Consumes(MediaType.APPLICATION_JSON)
 public class CommentResource extends AbstractResource {
 
-    private final CommentServiceImpl commentService = new CommentServiceImpl();
+    private final CommentService commentService = new CommentServiceImpl();
 
     @GET
     public Response getAllComments() {
