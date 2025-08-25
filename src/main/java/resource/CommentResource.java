@@ -5,7 +5,7 @@ import domain.Comment;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import service.CommentService;
+import service.CommentServiceImpl;
 
 import java.util.Arrays;
 import java.util.List;
@@ -17,7 +17,7 @@ import java.util.UUID;
 @Consumes(MediaType.APPLICATION_JSON)
 public class CommentResource extends AbstractResource {
 
-    private final CommentService commentService = new CommentService();
+    private final CommentServiceImpl commentService = new CommentServiceImpl();
 
     @GET
     public Response getAllComments() {
@@ -93,7 +93,6 @@ public class CommentResource extends AbstractResource {
             }
             Comment comment = gson().fromJson(payload, Comment.class);
             comment.setCommentId(UUID.fromString(id));
-
             commentService.updateComment(comment);
             return Response.ok(Map.of("message", "Comment updated successfully")).build();
         }catch (IllegalArgumentException e) {
@@ -111,7 +110,6 @@ public class CommentResource extends AbstractResource {
                         .entity(Map.of("error", e.getMessage()))
                         .build();
             }
-
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(Map.of("error","Failed to update Comment")).build();
         }

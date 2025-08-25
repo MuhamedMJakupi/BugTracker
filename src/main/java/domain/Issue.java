@@ -1,14 +1,17 @@
 package domain;
 
+import common.AbstractEntity;
 import common.enums.IssueStatus;
 import common.enums.IssuePriority;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
-public class Issue {
+public class Issue extends AbstractEntity {
 
-    private UUID issueId;
+    //private UUID issueId;
     private UUID projectId;
     private String title;
     private String description;
@@ -23,7 +26,8 @@ public class Issue {
     public Issue() {}
 
     public Issue(UUID projectId, String title, String description, UUID reporterId) {
-        this.issueId = UUID.randomUUID();
+        //this.issueId = UUID.randomUUID();
+        setIssueId(UUID.randomUUID());
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
         this.statusId = IssueStatus.TODO.getId();        // Default status
@@ -39,7 +43,8 @@ public class Issue {
 
     public Issue(UUID projectId, String title, String description, UUID reporterId,
                  UUID assigneeId, int statusId, int priorityId, LocalDate dueDate) {
-        this.issueId = UUID.randomUUID();
+        //this.issueId = UUID.randomUUID();
+        setIssueId(UUID.randomUUID());
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
 
@@ -53,8 +58,8 @@ public class Issue {
         this.dueDate = dueDate;
     }
 
-    public UUID getIssueId() { return issueId; }
-    public void setIssueId(UUID issueId) { this.issueId = issueId; }
+    public UUID getIssueId() { return getId() ; }
+    public void setIssueId(UUID issueId) { setId(issueId); }
 
     public UUID getProjectId() { return projectId; }
     public void setProjectId(UUID projectId) {
@@ -132,7 +137,7 @@ public class Issue {
     @Override
     public String toString() {
         return "Issue{" +
-                "issueId=" + issueId +
+                "issueId=" + getIssueId() +
                 ", projectId=" + projectId +
                 ", title='" + title + '\'' +
                 ", statusId=" + statusId +
@@ -143,5 +148,87 @@ public class Issue {
                 ", updatedAt=" + updatedAt +
                 ", dueDate=" + dueDate +
                 '}';
+    }
+
+    @Override
+    public List<String> validate() {
+        List<String> errors = new ArrayList<>();
+
+        if (title == null || title.trim().isEmpty()) {
+            errors.add("Issue title is mandatory");
+        } else if (title.length() < 3 || title.length() > 200) {
+            errors.add("Issue title must be between 3 and 200 characters");
+        }
+
+        if (description != null && description.length() > 1000) {
+            errors.add("Issue description cannot exceed 1000 characters");
+        }
+
+        if (projectId == null) {
+            errors.add("Project ID is mandatory");
+        }
+
+        if (reporterId == null) {
+            errors.add("Reporter ID is mandatory");
+        }
+
+        if (!isValidStatus(statusId)) {
+            errors.add("Invalid issue status");
+        }
+
+        if (!isValidPriority(priorityId)) {
+            errors.add("Invalid issue priority");
+        }
+
+        if (dueDate != null && dueDate.isBefore(LocalDate.now())) {
+            errors.add("Due date cannot be in the past");
+        }
+
+        return errors;    }
+
+    @Override
+    public List<String> validateForCreation() {
+        List<String> errors = validate();
+
+        if (getIssueId() != null) {
+            errors.add("Issue ID should not be provided for new issues");
+        }
+
+        if (createdAt != null) {
+            errors.add("Created timestamp should not be provided for new issues");
+        }
+
+        if (updatedAt != null) {
+            errors.add("Updated timestamp should not be provided for new issues");
+        }
+
+        return errors;    }
+
+    @Override
+    public List<String> validateForUpdate() {
+        List<String> errors = validate();
+
+        if (getIssueId() == null) {
+            errors.add("Issue ID is required for updates");
+        }
+
+        return errors;    }
+
+    private boolean isValidStatus(int statusId) {
+        try {
+            IssueStatus.fromId(statusId);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private boolean isValidPriority(int priorityId) {
+        try {
+            IssuePriority.fromId(priorityId);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

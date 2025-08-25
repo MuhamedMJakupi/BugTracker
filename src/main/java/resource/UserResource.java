@@ -2,7 +2,7 @@ package resource;
 
 import common.AbstractResource;
 import domain.User;
-import service.UserService;
+import service.UserServiceImpl;
 
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -15,7 +15,7 @@ import java.util.*;
 @Consumes(MediaType.APPLICATION_JSON)
 public class UserResource extends AbstractResource {
 
-    private final UserService userService = new UserService();
+    private final UserServiceImpl userService = new UserServiceImpl();
 
     @GET
     public Response getAllUsers() {
@@ -60,16 +60,12 @@ public class UserResource extends AbstractResource {
                         .build();
             }
             User user = gson().fromJson(payload, User.class);
-
-            // Validation is handled inside UserService
             User createdUser = userService.createUser(user);
-
             return Response.status(Response.Status.CREATED)
                     .entity(createdUser)
                     .build();
 
         } catch (IllegalArgumentException e) {
-            // Parse validation errors from service
             String message = e.getMessage();
             if (message.startsWith("Validation failed:")) {
                 String errorList = message.replace("Validation failed: ", "");
@@ -111,12 +107,6 @@ public class UserResource extends AbstractResource {
                 List<String> errors = Arrays.asList(errorList.split(", "));
                 return Response.status(Response.Status.BAD_REQUEST)
                         .entity(Map.of("errors", errors))
-                        .build();
-            } else if (message.startsWith("Business rule validation failed:")) {
-                String errorList = message.replace("Business rule validation failed: ", "");
-                List<String> errors = Arrays.asList(errorList.split(", "));
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of("business_errors", errors))
                         .build();
             } else if (message.toLowerCase().contains("uuid")) {
                 return Response.status(Response.Status.BAD_REQUEST)

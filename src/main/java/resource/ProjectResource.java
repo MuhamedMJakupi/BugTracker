@@ -5,7 +5,7 @@ import domain.Project;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import service.ProjectService;
+import service.ProjectServiceImpl;
 
 import java.util.Arrays;
 import java.util.List;
@@ -17,7 +17,7 @@ import java.util.UUID;
 @Consumes(MediaType.APPLICATION_JSON)
 public class ProjectResource extends AbstractResource {
 
-    private final ProjectService projectService = new ProjectService();
+    private final ProjectServiceImpl projectService = new ProjectServiceImpl();
 
     @GET
     public Response getAllProjects() {
@@ -63,9 +63,7 @@ public class ProjectResource extends AbstractResource {
                         .build();
             }
             Project project = gson().fromJson(payload, Project.class);
-
             Project createdProject = projectService.createProject(project);
-
             return Response.status(Response.Status.CREATED).entity(createdProject).build();
         } catch (IllegalArgumentException e) {
             String message = e.getMessage();
@@ -96,7 +94,6 @@ public class ProjectResource extends AbstractResource {
             }
             Project project = gson().fromJson(payload, Project.class);
             project.setProjectId(UUID.fromString(id));
-
             projectService.updateProject(project);
             return Response.ok(Map.of("message", "Project updated successfully")).build();
         } catch (IllegalArgumentException e) {
@@ -114,7 +111,6 @@ public class ProjectResource extends AbstractResource {
                         .entity(Map.of("error", e.getMessage()))
                         .build();
             }
-
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(Map.of("error","Failed to update Project")).build();
         }

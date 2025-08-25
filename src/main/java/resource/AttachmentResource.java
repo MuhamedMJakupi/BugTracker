@@ -5,7 +5,7 @@ import domain.Attachment;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import service.AttachmentService;
+import service.AttachmentServiceImpl;
 
 import java.util.Arrays;
 import java.util.List;
@@ -17,7 +17,7 @@ import java.util.UUID;
 @Consumes(MediaType.APPLICATION_JSON)
 public class AttachmentResource extends AbstractResource {
 
-    private final AttachmentService attachmentService = new AttachmentService();
+    private final AttachmentServiceImpl attachmentService = new AttachmentServiceImpl();
 
     @GET
     public Response getAllAttachments() {
@@ -86,7 +86,6 @@ public class AttachmentResource extends AbstractResource {
     @Path("/{id}")
 
     public Response updateAttachment(@PathParam("id") String id, String payload) {
-
         try {
             if (payload == null || payload.trim().isEmpty()) {
                 return Response.status(Response.Status.BAD_REQUEST)

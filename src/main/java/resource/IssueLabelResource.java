@@ -2,7 +2,7 @@ package resource;
 
 import common.AbstractResource;
 import domain.IssueLabel;
-import service.IssueLabelService;
+import service.IssueLabelServiceImpl;
 
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -14,7 +14,7 @@ import java.util.*;
 @Consumes(MediaType.APPLICATION_JSON)
 public class IssueLabelResource extends AbstractResource {
 
-    private final IssueLabelService labelService = new IssueLabelService();
+    private final IssueLabelServiceImpl labelService = new IssueLabelServiceImpl();
 
     @GET
     public Response getAllLabels() {
@@ -32,13 +32,11 @@ public class IssueLabelResource extends AbstractResource {
         try {
             UUID labelId = UUID.fromString(id);
             IssueLabel label = labelService.getLabelById(labelId);
-
             if (label == null) {
                 return Response.status(Response.Status.NOT_FOUND)
                         .entity(Map.of("error", "Label not found"))
                         .build();
             }
-
             return Response.ok(label).build();
         } catch (IllegalArgumentException e) {
             return Response.status(Response.Status.BAD_REQUEST)
@@ -60,7 +58,6 @@ public class IssueLabelResource extends AbstractResource {
                         .entity(Map.of("error", "Search name is required"))
                         .build();
             }
-
             List<IssueLabel> labels = labelService.searchLabelsByName(name);
             return Response.ok(labels).build();
         } catch (Exception e) {

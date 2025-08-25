@@ -1,10 +1,14 @@
 package domain;
 
+import common.AbstractEntity;
+
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
-public class Attachment {
-    private UUID attachmentId;
+public class Attachment extends AbstractEntity {
+    //private UUID attachmentId;
     private UUID issueId;
     private String filename;
     private String fileUrl;
@@ -13,7 +17,8 @@ public class Attachment {
     public Attachment() {}
 
     public Attachment(UUID issueId, String filename, String fileUrl) {
-        this.attachmentId = UUID.randomUUID();
+        //this.attachmentId = UUID.randomUUID();
+        setAttachmentId(UUID.randomUUID());
         this.uploadedAt = LocalDateTime.now();
 
         this.issueId = issueId;
@@ -22,11 +27,11 @@ public class Attachment {
     }
 
     public UUID getAttachmentId() {
-        return attachmentId;
+        return getId();
     }
 
     public void setAttachmentId(UUID attachmentId) {
-        this.attachmentId = attachmentId;
+        setId(attachmentId);
     }
 
     public UUID getIssueId() {
@@ -64,12 +69,55 @@ public class Attachment {
     @Override
     public String toString() {
         return "Attachment{" +
-                "attachmentId=" + attachmentId +
+                "attachmentId=" + getAttachmentId() +
                 ", issueId=" + issueId +
                 ", filename='" + filename + '\'' +
                 ", fileUrl='" + fileUrl + '\'' +
                 ", uploadedAt=" + uploadedAt +
                 '}';
+    }
+
+    @Override
+    public List<String> validate() {
+        List<String> errors = new ArrayList<>();
+
+        if (issueId == null) {
+            errors.add("Issue Id is required");
+        }
+
+        if (filename == null || filename.trim().isEmpty()) {
+            errors.add("Filename is required");
+        }
+
+        if (fileUrl == null || fileUrl.trim().isEmpty()) {
+            errors.add("File Url is required");
+        }
+
+        return errors;    }
+
+    @Override
+    public List<String> validateForCreation() {
+        List<String> errors = validate();
+
+        if (getAttachmentId() != null) {
+            errors.add("Attachment ID should not be provided for new attachments");
+        }
+
+        if (uploadedAt != null) {
+            errors.add("Uploaded timestamp should not be provided for new attachments");
+        }
+
+        return errors;    }
+
+    @Override
+    public List<String> validateForUpdate() {
+        List<String> errors = validate();
+
+        if (getAttachmentId() == null) {
+            errors.add("Attachment Id is required");
+        }
+
+        return errors;
     }
 }
 

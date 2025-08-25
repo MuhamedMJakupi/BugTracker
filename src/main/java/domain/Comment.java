@@ -1,11 +1,15 @@
 package domain;
 
+import common.AbstractEntity;
+
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
-public class Comment {
+public class Comment extends AbstractEntity {
 
-    private UUID commentId;
+    //private UUID commentId;
     private UUID issueId;
     private UUID userId;
     private String text;
@@ -14,7 +18,8 @@ public class Comment {
     public Comment() {}
 
     public Comment(UUID issueId, UUID userId, String text) {
-        this.commentId = UUID.randomUUID();
+        //this.commentId = UUID.randomUUID();
+        setCommentId(UUID.randomUUID());
         this.timestamp = LocalDateTime.now();
 
         this.issueId = issueId;
@@ -23,11 +28,11 @@ public class Comment {
     }
 
     public UUID getCommentId() {
-        return commentId;
+        return getId();
     }
 
     public void setCommentId(UUID commentId) {
-        this.commentId = commentId;
+        setId(commentId);
     }
 
     public UUID getIssueId() {
@@ -65,11 +70,56 @@ public class Comment {
     @Override
     public String toString() {
         return "Comment{" +
-                "commentId=" + commentId +
+                "commentId=" + getCommentId() +
                 ", issueId=" + issueId +
                 ", userId=" + userId +
                 ", text='" + text + '\'' +
                 ", timestamp=" + timestamp +
                 '}';
+    }
+
+    @Override
+    public List<String> validate() {
+        List<String> errors = new ArrayList<>();
+
+        if (issueId == null) {
+            errors.add("Issue id is mandatory");
+        }
+
+        if (userId == null) {
+            errors.add("User id is mandatory");
+        }
+
+        if (text == null || text.trim().isEmpty()) {
+            errors.add("Comment text is mandatory");
+        } else if (text.length() > 1000) {
+            errors.add("Comment text cannot exceed 1000 characters");
+        }
+
+        return errors;    }
+
+    @Override
+    public List<String> validateForCreation() {
+        List<String> errors = validate();
+
+        if (getCommentId() != null) {
+            errors.add("Comment ID should not be provided for creation");
+        }
+
+        if (timestamp != null) {
+            errors.add("Created timestamp should not be provided for new comments");
+        }
+
+        return errors;    }
+
+    @Override
+    public List<String> validateForUpdate() {
+        List<String> errors = validate();
+
+        if (getCommentId() == null) {
+            errors.add("Comment ID is required for updates");
+        }
+
+        return errors;
     }
 }

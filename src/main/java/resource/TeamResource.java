@@ -7,7 +7,7 @@ import domain.User;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import service.TeamService;
+import service.TeamServiceImpl;
 
 import java.util.Arrays;
 import java.util.List;
@@ -19,7 +19,7 @@ import java.util.UUID;
 @Consumes(MediaType.APPLICATION_JSON)
 public class TeamResource extends AbstractResource {
 
-    private final TeamService teamService = new TeamService();
+    private final TeamServiceImpl teamService = new TeamServiceImpl();
 
     @GET
     public Response getAllTeams() {
@@ -176,10 +176,8 @@ public class TeamResource extends AbstractResource {
                         .build();
             }
             TeamMember teamMember = gson().fromJson(payload, TeamMember.class);
-
             UUID teamUuid = UUID.fromString(teamId);
             teamService.addTeamMember(teamUuid, teamMember.getUserId());
-
             return Response.status(Response.Status.CREATED)
                     .entity(Map.of("message", "User added to team successfully"))
                     .build();
