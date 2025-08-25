@@ -60,8 +60,11 @@ public class IssueLabelResource extends AbstractResource {
                         .build();
             }
             List<IssueLabel> labels = labelService.searchLabelsByName(name);
-            return Response.ok(labels).build();
-        } catch (Exception e) {
+            return Response.status(Response.Status.OK).entity(labels).build();
+        }
+        catch (IllegalArgumentException e){
+            return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error","Invalid label name")).build();
+        }catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity(Map.of("error", "Failed to search labels"))
                     .build();
@@ -80,7 +83,16 @@ public class IssueLabelResource extends AbstractResource {
             IssueLabel created = labelService.createLabel(label);
             return Response.status(Response.Status.CREATED).entity(created).build();
         } catch (IllegalArgumentException e) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+            String message = e.getMessage();
+            if (message.startsWith("Validation failed:")) {
+                String errorList = message.replace("Validation failed: ", "");
+                List<String> errors = Arrays.asList(errorList.split(", "));
+                return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("errors", errors)).build();
+            } else {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(Map.of("error", e.getMessage()))
+                        .build();
+            }
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(Map.of("error", "Failed to create label")).build();
         }
@@ -100,7 +112,20 @@ public class IssueLabelResource extends AbstractResource {
             labelService.updateLabel(label);
             return Response.ok(Map.of("message", "Label updated")).build();
         } catch (IllegalArgumentException e) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error", e.getMessage())).build();
+            String message = e.getMessage();
+            if (message.startsWith("Validation failed:")) {
+                String errorList = message.replace("Validation failed: ", "");
+                List<String> errors = Arrays.asList(errorList.split(", "));
+                return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("errors", errors)).build();
+            } else if (message.toLowerCase().contains("uuid")) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(Map.of("error", "Invalid UUID format"))
+                        .build();
+            } else {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(Map.of("error", e.getMessage()))
+                        .build();
+            }
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(Map.of("error", "Failed to update label")).build();
         }
@@ -111,9 +136,21 @@ public class IssueLabelResource extends AbstractResource {
     public Response deleteLabel(@PathParam("id") String id) {
         try {
             labelService.deleteLabel(UUID.fromString(id));
-            return Response.ok(Map.of("message", "Label deleted")).build();
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(Map.of("error", "Failed to delete label")).build();
+            return Response.ok(Map.of("message", "Label deleted successfully")).build();
+        } catch (IllegalArgumentException e) {
+            if (e.getMessage().toLowerCase().contains("uuid")) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(Map.of("error", "Invalid UUID format"))
+                        .build();
+            } else {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(Map.of("error", e.getMessage()))
+                        .build();
+            }
+        }catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(Map.of("error", "Failed to delete label"))
+                    .build();
         }
     }
 }
