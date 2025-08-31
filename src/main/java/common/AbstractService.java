@@ -56,7 +56,6 @@ public abstract class AbstractService {
         }
     }
 
-
     public void close(PreparedStatement ps, Connection connection) throws SQLException {
         if (ps != null) {
             ps.close();

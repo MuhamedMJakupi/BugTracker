@@ -9,7 +9,6 @@ import java.util.UUID;
 
 public class Project extends AbstractEntity {
 
-    //private UUID projectId;
     private String name;
     private String description;
     private UUID ownerId;
@@ -19,7 +18,7 @@ public class Project extends AbstractEntity {
     public Project() {}
 
     public Project(String name, String description, UUID ownerId) {
-        //this.projectId = UUID.randomUUID();
+
         setProjectId(UUID.randomUUID());
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
@@ -78,19 +77,19 @@ public class Project extends AbstractEntity {
 
         if (name == null || name.trim().isEmpty()) {
             errors.add("Name is required");
-        } else if (name.length() < 2 || name.length() > 100) {
+        } else if (name.trim().length() < 2 || name.trim().length() > 100) {
             errors.add("Name must be between 2 and 100 characters");
         }
 
-        if (description != null && description.length() > 500) {
+        if (description != null && description.trim().length() > 500) {
             errors.add("Project description cannot exceed 500 characters");
         }
 
         if (ownerId == null) {
             errors.add("Owner Id is required");
         }
-
-        return errors;    }
+        return errors;
+    }
 
     @Override
     public List<String> validateForCreation() {
@@ -107,8 +106,8 @@ public class Project extends AbstractEntity {
         if (updatedAt != null) {
             errors.add("Updated timestamp should not be provided for new projects");
         }
-
-        return errors;    }
+        return errors;
+    }
 
     @Override
     public List<String> validateForUpdate() {
@@ -117,6 +116,6 @@ public class Project extends AbstractEntity {
         if (getProjectId() == null) {
             errors.add("Project ID is required for updates");
         }
-
-        return errors;    }
+        return errors;
+    }
 }

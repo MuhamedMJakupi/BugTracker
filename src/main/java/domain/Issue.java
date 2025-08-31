@@ -5,13 +5,13 @@ import common.enums.IssueStatus;
 import common.enums.IssuePriority;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 public class Issue extends AbstractEntity {
 
-    //private UUID issueId;
     private UUID projectId;
     private String title;
     private String description;
@@ -21,12 +21,12 @@ public class Issue extends AbstractEntity {
     private UUID assigneeId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private LocalDate dueDate;
+    private String dueDate;
 
     public Issue() {}
 
     public Issue(UUID projectId, String title, String description, UUID reporterId) {
-        //this.issueId = UUID.randomUUID();
+
         setIssueId(UUID.randomUUID());
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
@@ -42,8 +42,8 @@ public class Issue extends AbstractEntity {
     }
 
     public Issue(UUID projectId, String title, String description, UUID reporterId,
-                 UUID assigneeId, int statusId, int priorityId, LocalDate dueDate) {
-        //this.issueId = UUID.randomUUID();
+                 UUID assigneeId, int statusId, int priorityId, String dueDate) {
+
         setIssueId(UUID.randomUUID());
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
@@ -106,8 +106,8 @@ public class Issue extends AbstractEntity {
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 
-    public LocalDate getDueDate() { return dueDate; }
-    public void setDueDate(LocalDate dueDate) {
+    public String getDueDate() { return dueDate; }
+    public void setDueDate(String dueDate) {
         this.dueDate = dueDate;
         updateTimestamp();
     }
@@ -140,6 +140,7 @@ public class Issue extends AbstractEntity {
                 "issueId=" + getIssueId() +
                 ", projectId=" + projectId +
                 ", title='" + title + '\'' +
+                ", description='" + description + '\'' +
                 ", statusId=" + statusId +
                 ", priorityId=" + priorityId +
                 ", reporterId=" + reporterId +
@@ -156,11 +157,11 @@ public class Issue extends AbstractEntity {
 
         if (title == null || title.trim().isEmpty()) {
             errors.add("Issue title is mandatory");
-        } else if (title.length() < 3 || title.length() > 200) {
+        } else if (title.trim().length() < 3 || title.trim().length() > 200) {
             errors.add("Issue title must be between 3 and 200 characters");
         }
 
-        if (description != null && description.length() > 1000) {
+        if (description != null && description.trim().length() > 1000) {
             errors.add("Issue description cannot exceed 1000 characters");
         }
 
@@ -180,8 +181,15 @@ public class Issue extends AbstractEntity {
             errors.add("Invalid issue priority");
         }
 
-        if (dueDate != null && dueDate.isBefore(LocalDate.now())) {
-            errors.add("Due date cannot be in the past");
+        if (dueDate != null && !dueDate.trim().isEmpty()) {
+            if (!isValidDateString(dueDate)) {
+                errors.add("Due date must be in yyyy-MM-dd format");
+            } else {
+                LocalDate dueDateParsed = LocalDate.parse(dueDate);
+                if (dueDateParsed.isBefore(LocalDate.now())) {
+                    errors.add("Due date cannot be in the past");
+                }
+            }
         }
 
         return errors;    }
@@ -231,4 +239,29 @@ public class Issue extends AbstractEntity {
             return false;
         }
     }
+
+
+    private boolean isValidDateString(String dateStr) {
+        if (dateStr == null || dateStr.trim().isEmpty()) {
+            return false;
+        }
+        try {
+            LocalDate.parse(dateStr);
+            return true;
+        } catch (DateTimeParseException e) {
+            return false;
+        }
+    }
+
+    public LocalDate getDueDateAsLocalDate() {
+        if (dueDate == null || dueDate.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            return LocalDate.parse(dueDate);
+        } catch (DateTimeParseException e) {
+            return null;
+        }
+    }
+
 }

@@ -1,7 +1,6 @@
 package domain;
 
 import common.AbstractEntity;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,14 +8,13 @@ import java.util.UUID;
 
 public class Team extends AbstractEntity {
 
-    //private UUID teamId;
     private String name;
     private LocalDateTime createdAt;
 
     public Team() {}
 
     public Team(String name) {
-        //this.teamId = UUID.randomUUID();
+
         setTeamId(UUID.randomUUID());
         this.createdAt = LocalDateTime.now();
 
@@ -65,8 +63,8 @@ public class Team extends AbstractEntity {
         } else if (name.length() < 2 || name.length() > 100) {
             errors.add("Team name must be between 2 and 100 characters");
         }
-
-        return errors;    }
+        return errors;
+    }
 
     @Override
     public List<String> validateForCreation() {
@@ -79,7 +77,6 @@ public class Team extends AbstractEntity {
         if (createdAt != null) {
             errors.add("Created at should not be provided for new teams");
         }
-
         return errors;
     }
 
@@ -90,7 +87,6 @@ public class Team extends AbstractEntity {
         if (getTeamId() == null) {
             errors.add("Team id is required");
         }
-
         return errors;
     }
 }

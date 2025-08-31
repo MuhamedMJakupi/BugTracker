@@ -1,7 +1,6 @@
 package domain;
 
 import common.AbstractEntity;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,14 +8,13 @@ import java.util.UUID;
 
 public class IssueLabel extends AbstractEntity {
 
-    //private UUID labelId;
     private String name;
     private LocalDateTime createdAt;
 
     public IssueLabel() {}
 
     public IssueLabel(String name) {
-        //this.labelId = UUID.randomUUID();
+
         setLabelId(UUID.randomUUID());
         this.createdAt = LocalDateTime.now();
 
@@ -65,7 +63,6 @@ public class IssueLabel extends AbstractEntity {
         } else if (name.length() > 50) {
             errors.add("Label name should not exceed 50 characters");
         }
-
         return errors;
     }
 
@@ -80,8 +77,8 @@ public class IssueLabel extends AbstractEntity {
         if (createdAt != null) {
             errors.add("Created timestamp should not be provided for new labels");
         }
-
-        return errors;    }
+        return errors;
+    }
 
     @Override
     public List<String> validateForUpdate() {
@@ -90,7 +87,6 @@ public class IssueLabel extends AbstractEntity {
         if (getLabelId() == null) {
             errors.add("Label ID is required for updates");
         }
-
         return errors;
     }
 }

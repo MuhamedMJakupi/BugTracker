@@ -6,11 +6,11 @@ import java.util.UUID;
 
 public interface IssueLabelService {
 
+    List<IssueLabel> getAllLabels() throws Exception;
+    IssueLabel getLabelById(UUID labelId) throws Exception;
     IssueLabel createLabel(IssueLabel label) throws Exception;
     void updateLabel(IssueLabel label) throws Exception;
     void deleteLabel(UUID labelId) throws Exception;
-    List<IssueLabel> getAllLabels() throws Exception;
-    IssueLabel getLabelById(UUID labelId) throws Exception;
 
     List<IssueLabel> searchLabelsByName(String query) throws Exception;
 

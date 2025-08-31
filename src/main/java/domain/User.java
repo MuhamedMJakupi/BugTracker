@@ -1,8 +1,6 @@
 package domain;
 
 import common.AbstractEntity;
-import common.enums.UserRole;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +9,6 @@ import java.util.regex.Pattern;
 
 public class User extends AbstractEntity {
 
-    //private UUID userId;
     private String name;
     private String email;
     private String passwordHash;
@@ -48,17 +45,16 @@ public class User extends AbstractEntity {
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
-
-
     private static final Pattern EMAIL_PATTERN =
             Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
+
     @Override
     public List<String> validate() {
         List<String> errors = new ArrayList<>();
 
         if (name == null || name.trim().isEmpty()) {
             errors.add("Name is mandatory");
-        } else if (name.length() < 2 || name.length() > 100) {
+        } else if (name.trim().length() < 2 || name.trim().length() > 100) {
             errors.add("Name must be between 2 and 100 characters");
         }
 
@@ -72,13 +68,15 @@ public class User extends AbstractEntity {
             errors.add("Password is mandatory");
         } else if (passwordHash.length() < 8) {
             errors.add("Password must be at least 8 characters");
+        } else if (passwordHash.length() > 255) {
+            errors.add("Password hash too long");
         }
 
         if (roleId < 1 || roleId > 4) {
             errors.add("Invalid role");
         }
-
-        return errors;    }
+        return errors;
+    }
 
     @Override
     public List<String> validateForCreation() {
@@ -91,8 +89,8 @@ public class User extends AbstractEntity {
         if (createdAt != null) {
             errors.add("Created timestamp should not be provided for new users");
         }
-
-        return errors;    }
+        return errors;
+    }
 
     @Override
     public List<String> validateForUpdate() {
@@ -101,6 +99,6 @@ public class User extends AbstractEntity {
         if (getUserId() == null) {
             errors.add("User ID is required for updates");
         }
-
-        return errors;    }
+        return errors;
+    }
 }

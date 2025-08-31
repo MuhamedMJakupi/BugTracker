@@ -9,7 +9,6 @@ import java.util.UUID;
 
 public class Comment extends AbstractEntity {
 
-    //private UUID commentId;
     private UUID issueId;
     private UUID userId;
     private String text;
@@ -18,7 +17,7 @@ public class Comment extends AbstractEntity {
     public Comment() {}
 
     public Comment(UUID issueId, UUID userId, String text) {
-        //this.commentId = UUID.randomUUID();
+
         setCommentId(UUID.randomUUID());
         this.timestamp = LocalDateTime.now();
 
@@ -92,11 +91,11 @@ public class Comment extends AbstractEntity {
 
         if (text == null || text.trim().isEmpty()) {
             errors.add("Comment text is mandatory");
-        } else if (text.length() > 1000) {
+        } else if (text.trim().length() > 1000) {
             errors.add("Comment text cannot exceed 1000 characters");
         }
-
-        return errors;    }
+        return errors;
+    }
 
     @Override
     public List<String> validateForCreation() {
@@ -109,8 +108,8 @@ public class Comment extends AbstractEntity {
         if (timestamp != null) {
             errors.add("Created timestamp should not be provided for new comments");
         }
-
-        return errors;    }
+        return errors;
+    }
 
     @Override
     public List<String> validateForUpdate() {
@@ -119,7 +118,6 @@ public class Comment extends AbstractEntity {
         if (getCommentId() == null) {
             errors.add("Comment ID is required for updates");
         }
-
         return errors;
     }
 }

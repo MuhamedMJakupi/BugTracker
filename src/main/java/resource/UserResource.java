@@ -4,7 +4,6 @@ import common.AbstractResource;
 import domain.User;
 import service.UserService;
 import service.UserServiceImpl;
-
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -19,135 +18,83 @@ public class UserResource extends AbstractResource {
     private final UserService userService = new UserServiceImpl();
 
     @GET
-    public Response getAllUsers() {
-        try {
+    public Response getAllUsers() throws Exception {
             List<User> users = userService.getAllUsers();
             return Response.ok(users).build();
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of("error", "Failed to retrieve users"))
-                    .build();
-        }
     }
 
     @GET
     @Path("/{id}")
-    public Response getUserById(@PathParam("id") String id) {
-        try {
+    public Response getUserById(@PathParam("id") String id) throws Exception {
             User user = userService.getUserById(UUID.fromString(id));
             if (user == null) {
-                return Response.status(Response.Status.NOT_FOUND)
-                        .entity(Map.of("error", "User not found"))
-                        .build();
+                throw new IllegalArgumentException("User not found");
             }
             return Response.ok(user).build();
-        } catch (IllegalArgumentException e) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(Map.of("error", "Invalid UUID format"))
-                    .build();
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of("error", "Failed to retrieve user"))
-                    .build();
-        }
     }
 
     @POST
-    public Response createUser(String payload) {
-        try {
+    public Response createUser(String payload) throws Exception {
             if (payload == null || payload.trim().isEmpty()) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of("error", "Request body is required"))
-                        .build();
+                throw new IllegalArgumentException("Request body is required");
             }
             User user = gson().fromJson(payload, User.class);
             User createdUser = userService.createUser(user);
             return Response.status(Response.Status.CREATED)
                     .entity(createdUser)
                     .build();
-
-        } catch (IllegalArgumentException e) {
-            String message = e.getMessage();
-            if (message.startsWith("Validation failed:")) {
-                String errorList = message.replace("Validation failed: ", "");
-                List<String> errors = Arrays.asList(errorList.split(", "));
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of("errors", errors))
-                        .build();
-            } else {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of("error", e.getMessage()))
-                        .build();
-            }
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of("error", "Failed to create user"))
-                    .build();
-        }
     }
 
     @PUT
     @Path("/{id}")
-    public Response updateUser(@PathParam("id") String id, String payload) {
-        try {
+    public Response updateUser(@PathParam("id") String id, String payload) throws Exception {
             if (payload == null || payload.trim().isEmpty()) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of("error", "Request body is required"))
-                        .build();
+                throw new IllegalArgumentException("Request body is required");
             }
             User user = gson().fromJson(payload, User.class);
             user.setUserId(UUID.fromString(id));
-
             userService.updateUser(user);
             return Response.ok(Map.of("message", "User updated successfully")).build();
-
-        } catch (IllegalArgumentException e) {
-            String message = e.getMessage();
-            if (message.startsWith("Validation failed:")) {
-                String errorList = message.replace("Validation failed: ", "");
-                List<String> errors = Arrays.asList(errorList.split(", "));
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of("errors", errors))
-                        .build();
-            } else if (message.toLowerCase().contains("uuid")) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of("error", "Invalid UUID format"))
-                        .build();
-            } else {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of("error", e.getMessage()))
-                        .build();
-            }
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of("error", "Failed to update user"))
-                    .build();
-        }
     }
 
     @DELETE
     @Path("/{id}")
-    public Response deleteUser(@PathParam("id") String id) {
-        try {
+    public Response deleteUser(@PathParam("id") String id) throws Exception {
             UUID uuid = UUID.fromString(id);
             userService.deleteUser(uuid);
             return Response.ok(Map.of("message", "User deleted successfully")).build();
+    }
 
-        } catch (IllegalArgumentException e) {
-            if (e.getMessage().toLowerCase().contains("uuid")) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of("error", "Invalid UUID format"))
-                        .build();
-            } else {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of("error", e.getMessage()))
-                        .build();
+    @POST
+    @Path("/login")
+    public Response authenticateUser(String payload) throws Exception {
+            if (payload == null || payload.trim().isEmpty()) {
+                throw new IllegalArgumentException("Request body is required");
             }
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of("error", "Failed to delete user"))
-                    .build();
-        }
+
+            User loginUser = gson().fromJson(payload, User.class);
+            if (loginUser == null) {
+                throw new IllegalArgumentException("User not found");
+            }
+
+            if (loginUser.getEmail() == null || loginUser.getEmail().trim().isEmpty()) {
+                throw new IllegalArgumentException("Email is required");
+            }
+
+            if (loginUser.getPasswordHash() == null || loginUser.getPasswordHash().trim().isEmpty()) {
+                throw new IllegalArgumentException("Password is required");
+            }
+
+            boolean isAuthenticated = userService.authenticateUser(
+                    loginUser.getEmail().trim(),
+                    loginUser.getPasswordHash()
+            );
+
+            if (isAuthenticated) {
+                return Response.ok(Map.of("message", "Authentication successful")).build();
+            } else {
+                throw new IllegalArgumentException("Invalid email or password");
+            }
     }
 }
 

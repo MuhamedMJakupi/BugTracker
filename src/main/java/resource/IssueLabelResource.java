@@ -4,7 +4,6 @@ import common.AbstractResource;
 import domain.IssueLabel;
 import service.IssueLabelService;
 import service.IssueLabelServiceImpl;
-
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -18,139 +17,56 @@ public class IssueLabelResource extends AbstractResource {
     private final IssueLabelService labelService = new IssueLabelServiceImpl();
 
     @GET
-    public Response getAllLabels() {
-        try {
+    public Response getAllLabels() throws Exception {
             return Response.ok(labelService.getAllLabels()).build();
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of("error", "Failed to retrieve labels"))
-                    .build();
-        }
     }
     @GET
     @Path("/{id}")
-    public Response getLabelById(@PathParam("id") String id) {
-        try {
-            UUID labelId = UUID.fromString(id);
-            IssueLabel label = labelService.getLabelById(labelId);
+    public Response getLabelById(@PathParam("id") String id) throws Exception {
+            IssueLabel label = labelService.getLabelById(UUID.fromString(id));
             if (label == null) {
-                return Response.status(Response.Status.NOT_FOUND)
-                        .entity(Map.of("error", "Label not found"))
-                        .build();
+                throw new IllegalArgumentException("Label not found");
             }
             return Response.ok(label).build();
-        } catch (IllegalArgumentException e) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(Map.of("error", "Invalid UUID format"))
-                    .build();
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of("error", "Failed to retrieve label"))
-                    .build();
-        }
-    }
-
-    @GET
-    @Path("/search/{name}")
-    public Response searchLabels(@PathParam("name") String name) {
-        try {
-            if (name == null || name.trim().isEmpty()) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of("error", "Search name is required"))
-                        .build();
-            }
-            List<IssueLabel> labels = labelService.searchLabelsByName(name);
-            return Response.status(Response.Status.OK).entity(labels).build();
-        }
-        catch (IllegalArgumentException e){
-            return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("error","Invalid label name")).build();
-        }catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of("error", "Failed to search labels"))
-                    .build();
-        }
     }
 
     @POST
-    public Response createLabel(String payload) {
-        try {
+    public Response createLabel(String payload) throws Exception {
             if (payload == null || payload.trim().isEmpty()) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of("error", "Request body is required"))
-                        .build();
+                throw new IllegalArgumentException("Request body is required");
             }
             IssueLabel label = gson().fromJson(payload, IssueLabel.class);
             IssueLabel created = labelService.createLabel(label);
             return Response.status(Response.Status.CREATED).entity(created).build();
-        } catch (IllegalArgumentException e) {
-            String message = e.getMessage();
-            if (message.startsWith("Validation failed:")) {
-                String errorList = message.replace("Validation failed: ", "");
-                List<String> errors = Arrays.asList(errorList.split(", "));
-                return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("errors", errors)).build();
-            } else {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of("error", e.getMessage()))
-                        .build();
-            }
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(Map.of("error", "Failed to create label")).build();
-        }
     }
 
     @PUT
     @Path("/{id}")
-    public Response updateLabel(@PathParam("id") String id, String payload) {
-        try {
+    public Response updateLabel(@PathParam("id") String id, String payload) throws Exception {
             if (payload == null || payload.trim().isEmpty()) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of("error", "Request body is required"))
-                        .build();
+                throw new IllegalArgumentException("Request body is required");
             }
             IssueLabel label = gson().fromJson(payload, IssueLabel.class);
             label.setLabelId(UUID.fromString(id));
             labelService.updateLabel(label);
             return Response.ok(Map.of("message", "Label updated")).build();
-        } catch (IllegalArgumentException e) {
-            String message = e.getMessage();
-            if (message.startsWith("Validation failed:")) {
-                String errorList = message.replace("Validation failed: ", "");
-                List<String> errors = Arrays.asList(errorList.split(", "));
-                return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("errors", errors)).build();
-            } else if (message.toLowerCase().contains("uuid")) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of("error", "Invalid UUID format"))
-                        .build();
-            } else {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of("error", e.getMessage()))
-                        .build();
-            }
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(Map.of("error", "Failed to update label")).build();
-        }
     }
 
     @DELETE
     @Path("/{id}")
-    public Response deleteLabel(@PathParam("id") String id) {
-        try {
+    public Response deleteLabel(@PathParam("id") String id) throws Exception {
             labelService.deleteLabel(UUID.fromString(id));
             return Response.ok(Map.of("message", "Label deleted successfully")).build();
-        } catch (IllegalArgumentException e) {
-            if (e.getMessage().toLowerCase().contains("uuid")) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of("error", "Invalid UUID format"))
-                        .build();
-            } else {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of("error", e.getMessage()))
-                        .build();
-            }
-        }catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of("error", "Failed to delete label"))
-                    .build();
+
+    }
+
+    @GET
+    @Path("/search/{name}")
+    public Response searchLabels(@PathParam("name") String name) throws Exception {
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Name is required");
         }
+        List<IssueLabel> labels = labelService.searchLabelsByName(name);
+        return Response.ok(labels).build();
     }
 }

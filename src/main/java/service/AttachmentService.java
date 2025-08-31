@@ -6,11 +6,11 @@ import java.util.UUID;
 
 public interface AttachmentService {
 
+    List<Attachment> getAllAttachments() throws Exception;
+    Attachment getAttachmentById(UUID attachmentId) throws Exception;
     Attachment createAttachment(Attachment attachment) throws Exception;
     void updateAttachment(Attachment attachment) throws Exception;
     void deleteAttachment(UUID attachmentId) throws Exception;
-    Attachment getAttachmentById(UUID attachmentId) throws Exception;
-    List<Attachment> getAllAttachments() throws Exception;
 
     List<Attachment> getAttachmentsByIssueId(UUID issueId) throws Exception;
 }

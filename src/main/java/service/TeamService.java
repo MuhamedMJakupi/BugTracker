@@ -7,11 +7,13 @@ import java.util.List;
 import java.util.UUID;
 
 public interface TeamService {
-    Team getTeamById(UUID teamId) throws Exception;
+
     List<Team> getAllTeams() throws Exception;
+    Team getTeamById(UUID teamId) throws Exception;
     Team createTeam(Team team) throws Exception;
     void updateTeam(Team team) throws Exception;
     void deleteTeam(UUID teamId) throws Exception;
+
     List<Team> getTeamByName(String teamName) throws Exception;
 
     void addTeamMember(UUID teamId, UUID userId) throws Exception;

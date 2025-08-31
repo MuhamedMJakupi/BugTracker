@@ -5,11 +5,8 @@ import domain.Comment;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import service.AttachmentService;
 import service.CommentService;
 import service.CommentServiceImpl;
-
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -22,156 +19,64 @@ public class CommentResource extends AbstractResource {
     private final CommentService commentService = new CommentServiceImpl();
 
     @GET
-    public Response getAllComments() {
-        try{
+    public Response getAllComments() throws Exception {
             List<Comment> comments = commentService.getAllComments();
-            return Response.status(Response.Status.OK).entity(comments).build();
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).
-                    entity(Map.of("error", "Failed to get all comments"))
-                    .build();
-        }
+            return Response.ok(comments).build();
     }
 
     @GET
     @Path("/{id}")
-        public Response getCommentById(@PathParam("id") String id) {
-        try{
+        public Response getCommentById(@PathParam("id") String id) throws Exception {
             Comment comment = commentService.getCommentById(UUID.fromString(id));
             if (comment == null) {
-                return Response.status(Response.Status.NOT_FOUND)
-                        .entity(Map.of("error","Comment not found")).
-                        build();
+                throw new IllegalArgumentException("Comment not found");
+
             }
-            return Response.status(Response.Status.OK).entity(comment).build();
-        } catch (IllegalArgumentException e) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(Map.of("error", "Invalid UUID format"))
-                    .build();
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of("error", "Failed to retrieve comment by id"))
-                    .build();
-        }
+            return Response.ok(comment).build();
     }
 
     @POST
-    public Response createComment(String payload) {
-        try{
+    public Response createComment(String payload) throws Exception {
             if (payload == null || payload.trim().isEmpty()) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of("error", "Request body is required"))
-                        .build();
+                throw new IllegalArgumentException("Request body is required");
+
             }
             Comment comment = gson().fromJson(payload, Comment.class);
             Comment createdComment = commentService.createComment(comment);
             return Response.status(Response.Status.CREATED).entity(createdComment).build();
-        }catch (IllegalArgumentException e) {
-            String message = e.getMessage();
-            if (message.startsWith("Validation failed:")) {
-                String errorList = message.replace("Validation failed: ", "");
-                List<String> errors = Arrays.asList(errorList.split(", "));
-                return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("errors", errors)).build();
-            } else {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of("error", e.getMessage()))
-                        .build();
-            }
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of("error", "Failed to create comment"))
-                    .build();
-        }
     }
 
     @PUT
     @Path("/{id}")
-    public Response updateComment(@PathParam("id") String id, String payload) {
-        try{
+    public Response updateComment(@PathParam("id") String id, String payload) throws Exception {
             if (payload == null || payload.trim().isEmpty()) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of("error", "Request body is required"))
-                        .build();
+                throw new IllegalArgumentException("Request body is required");
+
             }
             Comment comment = gson().fromJson(payload, Comment.class);
             comment.setCommentId(UUID.fromString(id));
             commentService.updateComment(comment);
             return Response.ok(Map.of("message", "Comment updated successfully")).build();
-        }catch (IllegalArgumentException e) {
-            String message = e.getMessage();
-            if (message.startsWith("Validation failed:")) {
-                String errorList = message.replace("Validation failed: ", "");
-                List<String> errors = Arrays.asList(errorList.split(", "));
-                return Response.status(Response.Status.BAD_REQUEST).entity(Map.of("errors", errors)).build();
-            } else if (message.toLowerCase().contains("uuid")) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of("error", "Invalid UUID format"))
-                        .build();
-            } else {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of("error", e.getMessage()))
-                        .build();
-            }
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(Map.of("error","Failed to update Comment")).build();
-        }
     }
 
     @DELETE
     @Path("/{id}")
-    public Response deleteComment(@PathParam("id") String id) {
-        try {
-            UUID uuid = UUID.fromString(id);
-            commentService.deleteComment(uuid);
+    public Response deleteComment(@PathParam("id") String id) throws Exception {
+            commentService.deleteComment(UUID.fromString(id));
             return Response.ok(Map.of("message", "Comment deleted successfully")).build();
-        }catch (IllegalArgumentException e) {
-            if (e.getMessage().toLowerCase().contains("uuid")) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of("error", "Invalid UUID format"))
-                        .build();
-            } else {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(Map.of("error", e.getMessage()))
-                        .build();
-            }
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of("error", "Failed to delete comment"))
-                    .build();
-        }
     }
 
     @GET
     @Path("/issue/{issue_id}")
-    public Response getCommentByIssueId(@PathParam("issue_id") String issueId) {
-        try{
+    public Response getCommentByIssueId(@PathParam("issue_id") String issueId) throws Exception {
             List<Comment> comments = commentService.getCommentsByIssueId(UUID.fromString(issueId));
             return Response.ok(comments).build();
-        }catch (IllegalArgumentException e) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(Map.of("error", "Invalid UUID format"))
-                    .build();
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of("error", "Failed to retrieve comment"))
-                    .build();
-        }
     }
 
     @GET
     @Path("/user/{user_id}")
-    public Response getCommentByUserId(@PathParam("user_id") String userId) {
-        try{
+    public Response getCommentByUserId(@PathParam("user_id") String userId) throws Exception {
             List<Comment> comments = commentService.getCommentsByUserId(UUID.fromString(userId));
             return Response.ok(comments).build();
-        }catch (IllegalArgumentException e) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(Map.of("error", "Invalid UUID format"))
-                    .build();
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(Map.of("error", "Failed to retrieve comments"))
-                    .build();
-        }
     }
 }

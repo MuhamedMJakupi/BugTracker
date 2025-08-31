@@ -10,6 +10,7 @@ public class IssueLabelMapping {
     private UUID labelId;
 
     public IssueLabelMapping() {}
+
     public IssueLabelMapping(UUID issueId, UUID labelId) {
         this.issueId = issueId;
         this.labelId = labelId;
@@ -30,14 +31,17 @@ public class IssueLabelMapping {
         if (labelId == null) {
             errors.add("Label ID is required");
         }
-
-        return errors;    }
+        return errors;
+    }
 
     public List<String> validateForCreation() {
-        return validate();   }
+        return validate();
+    }
 
     public List<String> validateForUpdate() {
-        return  validate(); }
+        return  validate();
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;

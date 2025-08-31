@@ -21,9 +21,10 @@ public class GsonProvider implements ContextResolver<Gson> {
     private final Gson gson;
 
     public GsonProvider() {
+        System.out.println("Custom GsonProvider registered!");
         gson = new GsonBuilder()
-                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
-                .registerTypeAdapter(LocalDate.class, new LocalDateAdapter())  // ADD THIS LINE
+                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter().nullSafe())
+                .registerTypeAdapter(LocalDate.class, new LocalDateAdapter().nullSafe())
                 .setPrettyPrinting()
                 .create();
     }

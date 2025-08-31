@@ -1,6 +1,7 @@
 package service;
 
 import common.AbstractService;
+import common.DBValidationUtils;
 import domain.Team;
 import domain.TeamMember;
 import domain.User;
@@ -12,33 +13,7 @@ import java.util.UUID;
 
 public class TeamServiceImpl extends AbstractService implements TeamService {
 
-    private boolean teamExists(UUID teamId) throws Exception {
-        //String sql = "SELECT COUNT(*) FROM teams WHERE team_id = ?";
-        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.TEAM_EXISTS)) {
-            ps.setString(1, teamId.toString());
-            ResultSet rs = ps.executeQuery();
-            return rs.next() && rs.getInt(1) > 0;
-        }
-    }
-
-    private boolean teamNameExists(String name) throws Exception {
-        //String sql = "SELECT COUNT(*) FROM teams WHERE name = ?";
-        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.TEAM_NAME_EXISTS)) {
-            ps.setString(1, name);
-            ResultSet rs = ps.executeQuery();
-            return rs.next() && rs.getInt(1) > 0;
-        }
-    }
-    private boolean teamNameExistsExcludingTeam(String name, UUID excludeTeamId) throws Exception {
-        try (Connection con = getConnection();
-             PreparedStatement ps = con.prepareStatement(SQL.TEAM_NAME_EXISTS_EXCLUDING)) {
-            ps.setString(1, name);
-            ps.setString(2, excludeTeamId.toString());
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next() && rs.getInt(1) > 0;
-            }
-        }
-    }
+    private final  DBValidationUtils validationUtils = new DBValidationUtils();
 
     private Team mapTeam(ResultSet rs) throws Exception {
         Team team = new Team();
@@ -48,21 +23,19 @@ public class TeamServiceImpl extends AbstractService implements TeamService {
         return team;
     }
 
-    public Team getTeamById(UUID teamId) throws Exception {
-        //String sql = "SELECT * FROM teams WHERE team_id = ?";
-        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.TEAM_BY_ID)) {
-            ps.setString(1, teamId.toString());
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return mapTeam(rs);
-            }
-            return null;
-        }
+    private User mapUser(ResultSet rs) throws SQLException {
+        User user = new User();
+        user.setUserId(UUID.fromString(rs.getString("user_id")));
+        user.setName(rs.getString("name"));
+        user.setEmail(rs.getString("email"));
+        user.setPasswordHash(rs.getString("password_hash"));
+        user.setRoleId(rs.getInt("role_id"));
+        user.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+        return user;
     }
 
     public List<Team> getAllTeams() throws Exception {
         List<Team> teams = new ArrayList<>();
-        //String sql = "SELECT * FROM teams";
 
         try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.ALL_TEAMS)) {
             ResultSet rs = ps.executeQuery();
@@ -73,19 +46,27 @@ public class TeamServiceImpl extends AbstractService implements TeamService {
         return teams;
     }
 
+    public Team getTeamById(UUID teamId) throws Exception {
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.TEAM_BY_ID)) {
+            ps.setString(1, teamId.toString());
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return mapTeam(rs);
+            }
+            return null;
+        }
+    }
+
     public Team createTeam(Team team) throws Exception {
         List<String> errors = team.validateForCreation();
         if (!errors.isEmpty()) {
             throw new IllegalArgumentException("Validation failed: " + String.join(", ", errors));
         }
-        if(teamNameExists(team.getName())) {
-            throw new IllegalArgumentException("Team name already exists: " + team.getName());
-        }
 
+        validationUtils.validateTeamNameUnique(team.getName());
         team.setTeamId(UUID.randomUUID());
         team.setCreatedAt(java.time.LocalDateTime.now());
 
-        //String sql = "INSERT INTO teams (team_id, name, created_at) VALUES (?, ?, ?)";
         try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.CREATE_TEAM)) {
             ps.setString(1, team.getTeamId().toString());
             ps.setString(2, team.getName());
@@ -105,11 +86,9 @@ public class TeamServiceImpl extends AbstractService implements TeamService {
         if(existingTeam == null) {
             throw new IllegalArgumentException("Team not found: " + team.getTeamId());
         }
-        if (teamNameExistsExcludingTeam(team.getName(), team.getTeamId())) {
-            throw new IllegalArgumentException("Team name already exists: " + team.getName());
-        }
 
-        //String sql = "UPDATE teams SET name = ? WHERE team_id = ?";
+        validationUtils.validateTeamNameUniqueForUpdate(team.getName(), team.getTeamId());
+
         try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.UPDATE_TEAM)) {
             ps.setString(1, team.getName());
             ps.setString(2, team.getTeamId().toString());
@@ -123,7 +102,6 @@ public class TeamServiceImpl extends AbstractService implements TeamService {
             throw new IllegalArgumentException("Team not found: " + teamId);
         }
 
-        //String sql = "DELETE FROM teams WHERE team_id = ?";
         try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.DELETE_TEAM)) {
             ps.setString(1, teamId.toString());
             ps.executeUpdate();
@@ -131,7 +109,6 @@ public class TeamServiceImpl extends AbstractService implements TeamService {
     }
 
     public List<Team> getTeamByName(String teamName) throws Exception {
-        //String sql = "SELECT * FROM teams WHERE name Like ?";
         List<Team> teams = new ArrayList<>();
         try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.TEAM_BY_NAME)) {
             ps.setString(1, "%" + teamName + "%");
@@ -153,15 +130,10 @@ public class TeamServiceImpl extends AbstractService implements TeamService {
             throw new IllegalArgumentException("Validation failed: " + String.join(", ", errors));
         }
 
-        if (getTeamById(teamId) == null) {
-            throw new IllegalArgumentException("Team not found");
-        }
+        validationUtils.validateTeamExists(teamId, "Team");
+        validationUtils.validateUserExists(userId, "User");
 
-        if (!userExists(userId)) {
-            throw new IllegalArgumentException("User not found");
-        }
-
-        if (isUserTeamMember(teamId, userId)) {
+        if (validationUtils.isUserTeamMember(teamId, userId)) {
             throw new IllegalArgumentException("User is already a member of this team");
         }
 
@@ -174,7 +146,11 @@ public class TeamServiceImpl extends AbstractService implements TeamService {
     }
 
     public void removeTeamMember(UUID teamId, UUID userId) throws Exception {
-        if (!isUserTeamMember(teamId, userId)) {
+
+        validationUtils.validateTeamExists(teamId, "Team");
+        validationUtils.validateUserExists(userId, "User");
+
+        if (!validationUtils.isUserTeamMember(teamId, userId)) {
             throw new IllegalArgumentException("User is not a member of this team");
         }
 
@@ -204,9 +180,7 @@ public class TeamServiceImpl extends AbstractService implements TeamService {
     }
 
     public List<Team> getUserTeams(UUID userId) throws Exception {
-        if (!userExists(userId)) {
-            throw new IllegalArgumentException("User not found");
-        }
+        validationUtils.validateUserExists(userId, "User");
 
         List<Team> teams = new ArrayList<>();
         try (Connection con = getConnection();
@@ -220,62 +194,24 @@ public class TeamServiceImpl extends AbstractService implements TeamService {
         return teams;
     }
 
-    private boolean isUserTeamMember(UUID teamId, UUID userId) throws SQLException {
-        try (Connection con = getConnection();
-             PreparedStatement ps = con.prepareStatement(SQL.CHECK_TEAM_MEMBERSHIP)) {
-            ps.setString(1, teamId.toString());
-            ps.setString(2, userId.toString());
-            ResultSet rs = ps.executeQuery();
-            return rs.next() && rs.getInt(1) > 0;
-        }
-    }
-
-    private boolean userExists(UUID userId) throws SQLException {
-        //String sql = "SELECT COUNT(*) FROM users WHERE user_id = ?";
-        try (Connection con = getConnection();
-             PreparedStatement ps = con.prepareStatement(SQL.USER_EXISTS)) {
-            ps.setString(1, userId.toString());
-            ResultSet rs = ps.executeQuery();
-            return rs.next() && rs.getInt(1) > 0;
-        }
-    }
-
-    private User mapUser(ResultSet rs) throws SQLException {
-        User user = new User();
-        user.setUserId(UUID.fromString(rs.getString("user_id")));
-        user.setName(rs.getString("name"));
-        user.setEmail(rs.getString("email"));
-        user.setPasswordHash(rs.getString("password_hash"));
-        user.setRoleId(rs.getInt("role_id"));
-        user.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
-        return user;
-    }
-
-
     public static class SQL{
-        public static final String USER_EXISTS = "SELECT COUNT(*) FROM users WHERE user_id = ?";
-        public static final String TEAM_EXISTS = "SELECT COUNT(*) FROM teams WHERE team_id = ?";
-        public static final String TEAM_NAME_EXISTS = "SELECT COUNT(*) FROM teams WHERE name = ?";
-        public static final String TEAM_BY_ID = "SELECT * FROM teams WHERE team_id = ?";
+
         public static final String ALL_TEAMS = "SELECT * FROM teams";
+        public static final String TEAM_BY_ID = "SELECT * FROM teams WHERE team_id = ?";
         public static final String CREATE_TEAM="INSERT INTO teams (team_id, name, created_at) VALUES (?, ?, ?)";
         public static final String UPDATE_TEAM = "UPDATE teams SET name = ? WHERE team_id = ?";
         public static final String DELETE_TEAM = "DELETE FROM teams WHERE team_id = ?";
+
         public static final String TEAM_BY_NAME = "SELECT * FROM teams WHERE name LIKE ?";
 
-        public static final String ADD_TEAM_MEMBER = "INSERT INTO team_members (team_id, user_id) VALUES (?, ?)";
+        public static final String ADD_TEAM_MEMBER =
+                "INSERT INTO team_members (team_id, user_id) VALUES (?, ?)";
         public static final String REMOVE_TEAM_MEMBER =
                 "DELETE FROM team_members WHERE team_id = ? AND user_id = ?";
-        public static final String CHECK_TEAM_MEMBERSHIP =
-                "SELECT COUNT(*) FROM team_members WHERE team_id = ? AND user_id = ?";
         public static final String GET_TEAM_MEMBERS =
                 "SELECT u.* FROM users u JOIN team_members tm ON u.user_id = tm.user_id WHERE tm.team_id = ?";
         public static final String GET_USER_TEAMS =
                 "SELECT t.* FROM teams t JOIN team_members tm ON t.team_id = tm.team_id WHERE tm.user_id = ?";
-        //public static final String REMOVE_ALL_TEAM_MEMBERS = "DELETE FROM team_members WHERE team_id = ?";
-        public static final String TEAM_NAME_EXISTS_EXCLUDING =
-                "SELECT COUNT(*) FROM teams WHERE name = ? AND team_id != ?";
-
 
     }
 
