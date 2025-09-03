@@ -9,14 +9,14 @@ import java.util.UUID;
 public class IssueLabel extends AbstractEntity {
 
     private String name;
-    private LocalDateTime createdAt;
-
+    //private LocalDateTime createdAt;
+    private String createdAt;
     public IssueLabel() {}
 
     public IssueLabel(String name) {
 
         setLabelId(UUID.randomUUID());
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now().toString();
 
         this.name = name;
     }
@@ -37,11 +37,11 @@ public class IssueLabel extends AbstractEntity {
         this.name = name;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public String getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(String createdAt) {
         this.createdAt = createdAt;
     }
 

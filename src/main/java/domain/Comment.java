@@ -12,14 +12,15 @@ public class Comment extends AbstractEntity {
     private UUID issueId;
     private UUID userId;
     private String text;
-    private LocalDateTime timestamp;
+    //private LocalDateTime timestamp;
+    private String timestamp;
 
     public Comment() {}
 
     public Comment(UUID issueId, UUID userId, String text) {
 
         setCommentId(UUID.randomUUID());
-        this.timestamp = LocalDateTime.now();
+        this.timestamp = LocalDateTime.now().toString();
 
         this.issueId = issueId;
         this.userId = userId;
@@ -58,11 +59,11 @@ public class Comment extends AbstractEntity {
         this.text = text;
     }
 
-    public LocalDateTime getTimestamp() {
+    public String getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(LocalDateTime timestamp) {
+    public void setTimestamp(String timestamp) {
         this.timestamp = timestamp;
     }
 

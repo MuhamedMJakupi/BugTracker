@@ -14,7 +14,8 @@ public class IssueHistory extends AbstractEntity {
     private String fieldName;        // status, assignee, priority...
     private String oldValue;
     private String newValue;
-    private LocalDateTime changedAt;
+    //private LocalDateTime changedAt;
+    private String changedAt;
 
     public UUID getHistoryId() {
         return getId();
@@ -39,8 +40,8 @@ public class IssueHistory extends AbstractEntity {
     public String getNewValue() { return newValue; }
     public void setNewValue(String newValue) { this.newValue = newValue; }
 
-    public LocalDateTime getChangedAt() { return changedAt; }
-    public void setChangedAt(LocalDateTime changedAt) { this.changedAt = changedAt; }
+    public String getChangedAt() { return changedAt; }
+    public void setChangedAt(String changedAt) { this.changedAt = changedAt; }
 
     private static final Set<String> ALLOWED_FIELDS =
             Set.of("status", "assignee", "priority", "title", "description","duedate");

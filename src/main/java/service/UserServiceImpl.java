@@ -6,6 +6,7 @@ import common.PasswordUtils;
 import domain.User;
 
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -21,7 +22,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
         user.setEmail(rs.getString("email"));
         user.setPasswordHash(rs.getString("password_hash"));
         user.setRoleId(rs.getInt("role_id"));
-        user.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+        user.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime().toString());
         return user;
     }
 
@@ -59,7 +60,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
         user.setPasswordHash(hashedPassword);
 
         user.setUserId(UUID.randomUUID());
-        user.setCreatedAt(java.time.LocalDateTime.now());
+        user.setCreatedAt(java.time.LocalDateTime.now().toString());
 
         try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.CREATE_USER)) {
             ps.setString(1, user.getUserId().toString());
@@ -67,7 +68,9 @@ public class UserServiceImpl extends AbstractService implements UserService {
             ps.setString(3, user.getEmail());
             ps.setString(4, user.getPasswordHash());
             ps.setInt(5, user.getRoleId());
-            ps.setTimestamp(6, Timestamp.valueOf(user.getCreatedAt()));
+            //ps.setTimestamp(6, Timestamp.valueOf(user.getCreatedAt()));
+            LocalDateTime ltd = LocalDateTime.parse(user.getCreatedAt());
+            ps.setTimestamp(6, Timestamp.valueOf(ltd));
             ps.executeUpdate();
         }
         return user;

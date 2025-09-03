@@ -1,5 +1,6 @@
 package common;
 
+import jakarta.servlet.ServletException;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
 import jakarta.ws.rs.core.Response;
@@ -14,6 +15,15 @@ public class GlobalExceptionMapper implements ExceptionMapper<Throwable> {
 
     @Override
     public Response toResponse(Throwable exception) {
+
+        if (exception instanceof ServletException servletException) {
+            if (servletException.getRootCause() instanceof IllegalArgumentException rootCause) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .type(MediaType.APPLICATION_JSON)
+                        .entity(Map.of("error", rootCause.getMessage()))
+                        .build();
+            }
+        }
 
         if (exception instanceof IllegalArgumentException) {
             String message = exception.getMessage();

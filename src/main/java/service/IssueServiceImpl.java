@@ -45,8 +45,8 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
             issue.setAssigneeId(UUID.fromString(assigneeIdStr));
         }
 
-        issue.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
-        issue.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
+        issue.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime().toString());
+        issue.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime().toString());
 
         Date dueDate = rs.getDate("due_date");
         if (dueDate != null) {
@@ -87,7 +87,7 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
             throw new IllegalArgumentException("Validation failed: " + String.join(", ", errors));
         }
 
-        if(issue.getAssigneeId() != null){//this can be assigneeId will check, was issueId changed to assigne will check
+        if(issue.getAssigneeId() != null){
             validationUtils.validateUserExists(issue.getAssigneeId(),"Assignee");
         }
         validationUtils.validateUserExists(issue.getReporterId(), "Reporter");
@@ -95,8 +95,8 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
         validationUtils.validateIssueTitleUniqueInProject(issue.getTitle(), issue.getProjectId());
 
         issue.setIssueId(UUID.randomUUID());
-        issue.setCreatedAt(java.time.LocalDateTime.now());
-        issue.setUpdatedAt(java.time.LocalDateTime.now());
+        issue.setCreatedAt(java.time.LocalDateTime.now().toString());
+        issue.setUpdatedAt(java.time.LocalDateTime.now().toString());
 
         try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.CREATE_ISSUE)) {
             ps.setString(1, issue.getIssueId().toString());
@@ -111,8 +111,14 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
             } else {
                 ps.setNull(8, java.sql.Types.VARCHAR);
             }
-            ps.setTimestamp(9, Timestamp.valueOf(issue.getCreatedAt()));
-            ps.setTimestamp(10, Timestamp.valueOf(issue.getUpdatedAt()));
+            //ps.setTimestamp(9, Timestamp.valueOf(issue.getCreatedAt()));
+            //ps.setTimestamp(10, Timestamp.valueOf(issue.getUpdatedAt()));
+
+            LocalDateTime ldt = LocalDateTime.parse(issue.getCreatedAt());
+            ps.setTimestamp(9, Timestamp.valueOf(ldt));
+
+            LocalDateTime ldt2 = LocalDateTime.parse(issue.getUpdatedAt());
+            ps.setTimestamp(10, Timestamp.valueOf(ldt2));
 
             if (issue.getDueDate() != null && !issue.getDueDate().trim().isEmpty()) {
                 try {
@@ -216,7 +222,7 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
         }
 
         issue.setCreatedAt(existingIssue.getCreatedAt());
-        issue.setUpdatedAt(LocalDateTime.now());
+        issue.setUpdatedAt(LocalDateTime.now().toString());
 
         try (Connection con = getConnection();
              PreparedStatement ps = con.prepareStatement(SQL.UPDATE_ISSUE)) {
@@ -232,7 +238,9 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
                 ps.setNull(6, java.sql.Types.VARCHAR);
             }
 
-            ps.setTimestamp(7, Timestamp.valueOf(issue.getUpdatedAt()));
+            //ps.setTimestamp(7, Timestamp.valueOf(issue.getUpdatedAt()));
+            LocalDateTime ldt = LocalDateTime.parse(issue.getUpdatedAt());
+            ps.setTimestamp(7, Timestamp.valueOf(ldt));
 
             if (issue.getDueDate() != null && !issue.getDueDate().trim().isEmpty()) {
                 try {
@@ -354,7 +362,7 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
                     history.setFieldName(rs.getString("field_name"));
                     history.setOldValue(rs.getString("old_value"));
                     history.setNewValue(rs.getString("new_value"));
-                    history.setChangedAt(rs.getTimestamp("changed_at").toLocalDateTime());
+                    history.setChangedAt(rs.getTimestamp("changed_at").toLocalDateTime().toString());
                     historyList.add(history);
                 }
             }
@@ -363,7 +371,7 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
     }
     public void recordHistoryChange(IssueHistory history) throws Exception {
         history.setHistoryId(UUID.randomUUID());
-        history.setChangedAt(LocalDateTime.now());
+        history.setChangedAt(LocalDateTime.now().toString());
 
         try (Connection con = getConnection();
              PreparedStatement ps = con.prepareStatement(SQL.RECORD_HISTORY)) {
@@ -373,7 +381,9 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
             ps.setString(4, history.getFieldName());
             ps.setString(5, history.getOldValue());
             ps.setString(6, history.getNewValue());
-            ps.setTimestamp(7, Timestamp.valueOf(history.getChangedAt()));
+            //ps.setTimestamp(7, Timestamp.valueOf(history.getChangedAt()));
+            LocalDateTime ldt = LocalDateTime.parse(history.getChangedAt());
+            ps.setTimestamp(7, Timestamp.valueOf(ldt));
             ps.executeUpdate();
         }
     }

@@ -11,14 +11,15 @@ public class Attachment extends AbstractEntity {
     private UUID issueId;
     private String filename;
     private String fileUrl;
-    private LocalDateTime uploadedAt;
+    //private LocalDateTime uploadedAt;
+    private String uploadedAt;
 
     public Attachment() {}
 
     public Attachment(UUID issueId, String filename, String fileUrl) {
 
         setAttachmentId(UUID.randomUUID());
-        this.uploadedAt = LocalDateTime.now();
+        this.uploadedAt = LocalDateTime.now().toString();
 
         this.issueId = issueId;
         this.filename = filename;
@@ -57,11 +58,11 @@ public class Attachment extends AbstractEntity {
         this.fileUrl = fileUrl;
     }
 
-    public LocalDateTime getUploadedAt() {
+    public String getUploadedAt() {
         return uploadedAt;
     }
 
-    public void setUploadedAt(LocalDateTime uploadedAt) {
+    public void setUploadedAt(String uploadedAt) {
         this.uploadedAt = uploadedAt;
     }
 

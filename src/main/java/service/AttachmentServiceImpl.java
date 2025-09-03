@@ -5,6 +5,7 @@ import common.DBValidationUtils;
 import domain.Attachment;
 
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -19,7 +20,7 @@ public class AttachmentServiceImpl extends AbstractService implements  Attachmen
         attachment.setIssueId(UUID.fromString(rs.getString("issue_id")));
         attachment.setFilename(rs.getString("filename"));
         attachment.setFileUrl(rs.getString("file_url"));
-        attachment.setUploadedAt(rs.getTimestamp("uploaded_at").toLocalDateTime());
+        attachment.setUploadedAt(rs.getTimestamp("uploaded_at").toLocalDateTime().toString());
         return attachment;
     }
 
@@ -53,14 +54,17 @@ public class AttachmentServiceImpl extends AbstractService implements  Attachmen
 
         validationUtils.validateIssueExists(attachment.getIssueId(),"Issue");
         attachment.setAttachmentId(UUID.randomUUID());
-        attachment.setUploadedAt(java.time.LocalDateTime.now());
+        //attachment.setUploadedAt(java.time.LocalDateTime.now());
+        attachment.setUploadedAt(LocalDateTime.now().toString());
 
         try(Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.CREATE_ATTACHMENT)) {
             ps.setString(1, attachment.getAttachmentId().toString());
             ps.setString(2, attachment.getIssueId().toString());
             ps.setString(3, attachment.getFilename());
             ps.setString(4, attachment.getFileUrl());
-            ps.setTimestamp(5, Timestamp.valueOf(attachment.getUploadedAt()));
+            //ps.setTimestamp(5, Timestamp.valueOf(attachment.getUploadedAt()));
+            LocalDateTime ldt = LocalDateTime.parse(attachment.getUploadedAt());
+            ps.setTimestamp(5, Timestamp.valueOf(ldt));
             ps.executeUpdate();
         }
         return  attachment;
@@ -78,12 +82,15 @@ public class AttachmentServiceImpl extends AbstractService implements  Attachmen
         }
 
         validationUtils.validateIssueExists(attachment.getIssueId(),"Issue");
-        attachment.setUploadedAt(java.time.LocalDateTime.now());
+        //attachment.setUploadedAt(java.time.LocalDateTime.now());
+        attachment.setUploadedAt(java.time.LocalDateTime.now().toString());
 
         try(Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.UPDATE_ATTACHMENT)) {
             ps.setString(1, attachment.getFilename());
             ps.setString(2, attachment.getFileUrl());
-            ps.setTimestamp(3, Timestamp.valueOf(attachment.getUploadedAt()));
+            //ps.setTimestamp(3, Timestamp.valueOf(attachment.getUploadedAt()));
+            LocalDateTime ldt = LocalDateTime.parse(attachment.getUploadedAt());
+            ps.setTimestamp(3, Timestamp.valueOf(ldt));
             ps.setString(4, attachment.getAttachmentId().toString());
             ps.executeUpdate();
         }

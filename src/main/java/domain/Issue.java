@@ -19,8 +19,11 @@ public class Issue extends AbstractEntity {
     private int priorityId;
     private UUID reporterId;
     private UUID assigneeId;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    //private LocalDateTime createdAt;
+    //private LocalDateTime updatedAt;
+    private String createdAt;
+    private String updatedAt;
+
     private String dueDate;
 
     public Issue() {}
@@ -28,8 +31,8 @@ public class Issue extends AbstractEntity {
     public Issue(UUID projectId, String title, String description, UUID reporterId) {
 
         setIssueId(UUID.randomUUID());
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now().toString();
+        this.updatedAt = LocalDateTime.now().toString();
         this.statusId = IssueStatus.TODO.getId();        // Default status
         this.priorityId = IssuePriority.MEDIUM.getId();  // Default priority
 
@@ -45,8 +48,8 @@ public class Issue extends AbstractEntity {
                  UUID assigneeId, int statusId, int priorityId, String dueDate) {
 
         setIssueId(UUID.randomUUID());
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now().toString();
+        this.updatedAt = LocalDateTime.now().toString();
 
         this.projectId = projectId;
         this.title = title;
@@ -100,11 +103,11 @@ public class Issue extends AbstractEntity {
         updateTimestamp();
     }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public String getCreatedAt() { return createdAt; }
+    public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }
 
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public String getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(String updatedAt) { this.updatedAt = updatedAt; }
 
     public String getDueDate() { return dueDate; }
     public void setDueDate(String dueDate) {
@@ -131,7 +134,7 @@ public class Issue extends AbstractEntity {
     }
 
     private void updateTimestamp() {
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now().toString();
     }
 
     @Override

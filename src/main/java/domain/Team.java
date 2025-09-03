@@ -9,14 +9,15 @@ import java.util.UUID;
 public class Team extends AbstractEntity {
 
     private String name;
-    private LocalDateTime createdAt;
+    //private LocalDateTime createdAt;
+    private String createdAt;
 
     public Team() {}
 
     public Team(String name) {
 
         setTeamId(UUID.randomUUID());
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now().toString();
 
         this.name = name;
     }
@@ -37,11 +38,11 @@ public class Team extends AbstractEntity {
         this.name = name;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public String getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(String createdAt) {
         this.createdAt = createdAt;
     }
 

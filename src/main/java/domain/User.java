@@ -13,13 +13,14 @@ public class User extends AbstractEntity {
     private String email;
     private String passwordHash;
     private int roleId;
-    private LocalDateTime createdAt;
+    //private LocalDateTime createdAt;
+    private String createdAt;
 
     public User() {}
 
     public User(String name, String email, String passwordHash, int roleId) {
         setUserId(UUID.randomUUID());
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now().toString();
 
         this.name = name;
         this.email = email;
@@ -42,8 +43,8 @@ public class User extends AbstractEntity {
     public int getRoleId() { return roleId; }
     public void setRoleId(int roleId) { this.roleId = roleId; }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public String getCreatedAt() { return createdAt; }
+    public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }
 
     private static final Pattern EMAIL_PATTERN =
             Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");

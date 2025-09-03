@@ -4,8 +4,8 @@ import common.AbstractService;
 import common.DBValidationUtils;
 import domain.IssueLabel;
 import domain.IssueLabelMapping;
-
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -18,7 +18,7 @@ public class IssueLabelServiceImpl extends AbstractService implements  IssueLabe
         IssueLabel label = new IssueLabel();
         label.setLabelId(UUID.fromString(rs.getString("label_id")));
         label.setName(rs.getString("name"));
-        label.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+        label.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime().toString());
         return label;
     }
 
@@ -54,13 +54,15 @@ public class IssueLabelServiceImpl extends AbstractService implements  IssueLabe
 
         validationUtils.validateLabelNameUnique(label.getName());
         label.setLabelId(UUID.randomUUID());
-        label.setCreatedAt(java.time.LocalDateTime.now());
+        label.setCreatedAt(java.time.LocalDateTime.now().toString());
 
         try (Connection con = getConnection();
              PreparedStatement ps = con.prepareStatement(SQL.CREATE_LABEL)) {
             ps.setString(1, label.getLabelId().toString());
             ps.setString(2, label.getName());
-            ps.setTimestamp(3, Timestamp.valueOf(label.getCreatedAt()));
+            //ps.setTimestamp(3, Timestamp.valueOf(label.getCreatedAt()));
+            LocalDateTime ltd = LocalDateTime.parse(label.getCreatedAt());
+            ps.setTimestamp(3, Timestamp.valueOf(ltd));
             ps.executeUpdate();
         }
         return label;
