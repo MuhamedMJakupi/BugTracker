@@ -1,7 +1,6 @@
 package domain;
 
 import common.AbstractEntity;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -43,7 +42,7 @@ public class IssueHistory extends AbstractEntity {
     public void setChangedAt(String changedAt) { this.changedAt = changedAt; }
 
     private static final Set<String> ALLOWED_FIELDS =
-            Set.of("status", "assignee", "priority", "title", "description","duedate");
+            Set.of("statusId", "assigneeId", "priorityId", "title", "description","duedate");
 
     @Override
     public List<String> validate() {

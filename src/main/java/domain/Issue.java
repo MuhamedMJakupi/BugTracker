@@ -21,7 +21,6 @@ public class Issue extends AbstractEntity {
     private UUID assigneeId;
     private String createdAt;
     private String updatedAt;
-
     private String dueDate;
 
     public Issue() {}
