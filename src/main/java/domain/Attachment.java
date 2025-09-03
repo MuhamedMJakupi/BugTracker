@@ -11,7 +11,6 @@ public class Attachment extends AbstractEntity {
     private UUID issueId;
     private String filename;
     private String fileUrl;
-    //private LocalDateTime uploadedAt;
     private String uploadedAt;
 
     public Attachment() {}
@@ -113,15 +112,6 @@ public class Attachment extends AbstractEntity {
         return errors;
     }
 
-    @Override
-    public List<String> validateForUpdate() {
-        List<String> errors = validate();
-
-        if (getAttachmentId() == null) {
-            errors.add("Attachment Id is required");
-        }
-        return errors;
-    }
 }
 
 

@@ -60,7 +60,6 @@ public class IssueLabelServiceImpl extends AbstractService implements  IssueLabe
              PreparedStatement ps = con.prepareStatement(SQL.CREATE_LABEL)) {
             ps.setString(1, label.getLabelId().toString());
             ps.setString(2, label.getName());
-            //ps.setTimestamp(3, Timestamp.valueOf(label.getCreatedAt()));
             LocalDateTime ltd = LocalDateTime.parse(label.getCreatedAt());
             ps.setTimestamp(3, Timestamp.valueOf(ltd));
             ps.executeUpdate();
@@ -69,7 +68,7 @@ public class IssueLabelServiceImpl extends AbstractService implements  IssueLabe
     }
 
     public void updateLabel(IssueLabel label) throws Exception {
-        List<String> errors = label.validateForUpdate();
+        List<String> errors = label.validate();
         if (!errors.isEmpty()) {
             throw new IllegalArgumentException("Validation failed: " + String.join(", ", errors));
         }
@@ -127,7 +126,7 @@ public class IssueLabelServiceImpl extends AbstractService implements  IssueLabe
         mapping.setIssueId(issueId);
         mapping.setLabelId(labelId);
 
-        List<String> errors = mapping.validateForCreation();
+        List<String> errors = mapping.validate();
         if (!errors.isEmpty()) {
             throw new IllegalArgumentException("Validation failed: " + String.join(", ", errors));
         }
@@ -170,7 +169,6 @@ public class IssueLabelServiceImpl extends AbstractService implements  IssueLabe
         }
         return labels;
     }
-
 
     public static class SQL {
         public static final String SELECT_ALL_LABELS = "SELECT * FROM issue_labels ORDER BY name";

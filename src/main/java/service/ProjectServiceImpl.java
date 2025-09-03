@@ -68,8 +68,6 @@ public class ProjectServiceImpl extends AbstractService implements  ProjectServi
             ps.setString(2, project.getName());
             ps.setString(3, project.getDescription());
             ps.setString(4,project.getOwnerId().toString());
-            //ps.setTimestamp(5, Timestamp.valueOf(project.getCreatedAt()));
-            //ps.setTimestamp(6, Timestamp.valueOf(project.getUpdatedAt()));
             LocalDateTime ltd = LocalDateTime.parse(project.getCreatedAt());
             ps.setTimestamp(5, Timestamp.valueOf(ltd));
             LocalDateTime ldt2 = LocalDateTime.parse(project.getUpdatedAt());
@@ -83,7 +81,7 @@ public class ProjectServiceImpl extends AbstractService implements  ProjectServi
 
     public void updateProject(Project project) throws Exception {
 
-        List<String> errors = project.validateForUpdate();
+        List<String> errors = project.validate();
         if (!errors.isEmpty()) {
             throw new IllegalArgumentException("Validation failed: " + String.join(", ", errors));
         }
@@ -103,11 +101,8 @@ public class ProjectServiceImpl extends AbstractService implements  ProjectServi
             ps.setString(1, project.getName());
             ps.setString(2, project.getDescription());
             ps.setString(3, project.getOwnerId().toString());
-
-            //ps.setTimestamp(4, Timestamp.valueOf(project.getUpdatedAt()));
             LocalDateTime ltd = LocalDateTime.parse(project.getUpdatedAt());
             ps.setTimestamp(4, Timestamp.valueOf(ltd));
-
             ps.setString(5, project.getProjectId().toString());
             ps.executeUpdate();
         }

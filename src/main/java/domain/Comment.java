@@ -12,7 +12,6 @@ public class Comment extends AbstractEntity {
     private UUID issueId;
     private UUID userId;
     private String text;
-    //private LocalDateTime timestamp;
     private String timestamp;
 
     public Comment() {}
@@ -112,13 +111,4 @@ public class Comment extends AbstractEntity {
         return errors;
     }
 
-    @Override
-    public List<String> validateForUpdate() {
-        List<String> errors = validate();
-
-        if (getCommentId() == null) {
-            errors.add("Comment ID is required for updates");
-        }
-        return errors;
-    }
 }

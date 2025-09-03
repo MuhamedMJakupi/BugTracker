@@ -17,20 +17,6 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
     private final DBValidationUtils validationUtils = new DBValidationUtils();
 
     private Issue mapIssue(ResultSet rs) throws Exception {
-//        Issue issue = new Issue();
-//        issue.setIssueId(UUID.fromString(rs.getString("issue_id")));
-//        issue.setProjectId(UUID.fromString(rs.getString("project_id")));
-//        issue.setTitle(rs.getString("title"));
-//        issue.setDescription(rs.getString("description"));
-//        issue.setStatusId(rs.getInt("status_id"));
-//        issue.setPriorityId(rs.getInt("priority_id"));
-//        issue.setReporterId(UUID.fromString(rs.getString("reporter_id")));
-//        issue.setAssigneeId(UUID.fromString(rs.getString("assignee_id")));
-//        issue.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
-//        issue.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
-//        issue.setDueDate(rs.getDate("due_date").toLocalDate());
-//        return issue;
-
         Issue issue = new Issue();
         issue.setIssueId(UUID.fromString(rs.getString("issue_id")));
         issue.setProjectId(UUID.fromString(rs.getString("project_id")));
@@ -111,15 +97,10 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
             } else {
                 ps.setNull(8, java.sql.Types.VARCHAR);
             }
-            //ps.setTimestamp(9, Timestamp.valueOf(issue.getCreatedAt()));
-            //ps.setTimestamp(10, Timestamp.valueOf(issue.getUpdatedAt()));
-
             LocalDateTime ldt = LocalDateTime.parse(issue.getCreatedAt());
             ps.setTimestamp(9, Timestamp.valueOf(ldt));
-
             LocalDateTime ldt2 = LocalDateTime.parse(issue.getUpdatedAt());
             ps.setTimestamp(10, Timestamp.valueOf(ldt2));
-
             if (issue.getDueDate() != null && !issue.getDueDate().trim().isEmpty()) {
                 try {
                     ps.setDate(11, java.sql.Date.valueOf(issue.getDueDate()));
@@ -129,7 +110,6 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
             } else {
                 ps.setNull(11, java.sql.Types.DATE);
             }
-
             ps.executeUpdate();
         }
         return issue;
@@ -137,7 +117,7 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
 
     @Override
     public void updateIssue(Issue issue, UUID changedByUserId) throws Exception {
-        List<String> errors = issue.validateForUpdate();
+        List<String> errors = issue.validate();
         if (!errors.isEmpty()) {
             throw new IllegalArgumentException("Validation failed: " + String.join(", ", errors));
         }
@@ -237,11 +217,8 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
             } else {
                 ps.setNull(6, java.sql.Types.VARCHAR);
             }
-
-            //ps.setTimestamp(7, Timestamp.valueOf(issue.getUpdatedAt()));
             LocalDateTime ldt = LocalDateTime.parse(issue.getUpdatedAt());
             ps.setTimestamp(7, Timestamp.valueOf(ldt));
-
             if (issue.getDueDate() != null && !issue.getDueDate().trim().isEmpty()) {
                 try {
                     ps.setDate(8, java.sql.Date.valueOf(issue.getDueDate()));
@@ -251,7 +228,6 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
             } else {
                 ps.setNull(8, java.sql.Types.DATE);
             }
-
             ps.setString(9, issue.getIssueId().toString());
             ps.executeUpdate();
         }
@@ -381,7 +357,6 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
             ps.setString(4, history.getFieldName());
             ps.setString(5, history.getOldValue());
             ps.setString(6, history.getNewValue());
-            //ps.setTimestamp(7, Timestamp.valueOf(history.getChangedAt()));
             LocalDateTime ldt = LocalDateTime.parse(history.getChangedAt());
             ps.setTimestamp(7, Timestamp.valueOf(ldt));
             ps.executeUpdate();
@@ -425,8 +400,6 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
                 INSERT INTO issue_history (history_id, issue_id, changed_by_user_id, field_name, old_value, new_value, changed_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
                 """;
-
-
     }
 
     //---------- Down are 2 different methods of update, separately with/without history track --------------------

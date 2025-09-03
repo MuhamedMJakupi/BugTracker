@@ -13,7 +13,6 @@ public class User extends AbstractEntity {
     private String email;
     private String passwordHash;
     private int roleId;
-    //private LocalDateTime createdAt;
     private String createdAt;
 
     public User() {}
@@ -93,13 +92,4 @@ public class User extends AbstractEntity {
         return errors;
     }
 
-    @Override
-    public List<String> validateForUpdate() {
-        List<String> errors = validate();
-
-        if (getUserId() == null) {
-            errors.add("User ID is required for updates");
-        }
-        return errors;
-    }
 }

@@ -14,7 +14,6 @@ public class IssueHistory extends AbstractEntity {
     private String fieldName;        // status, assignee, priority...
     private String oldValue;
     private String newValue;
-    //private LocalDateTime changedAt;
     private String changedAt;
 
     public UUID getHistoryId() {
@@ -85,16 +84,6 @@ public class IssueHistory extends AbstractEntity {
 
         if (changedAt != null) {
             errors.add("Changed timestamp should not be provided for new history entries");
-        }
-        return errors;
-    }
-
-    @Override
-    public List<String> validateForUpdate() {
-        List<String> errors = validate();
-
-        if (getHistoryId() == null) {
-            errors.add("History ID is required for updates");
         }
         return errors;
     }

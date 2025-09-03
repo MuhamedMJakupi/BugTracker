@@ -19,8 +19,6 @@ public class Issue extends AbstractEntity {
     private int priorityId;
     private UUID reporterId;
     private UUID assigneeId;
-    //private LocalDateTime createdAt;
-    //private LocalDateTime updatedAt;
     private String createdAt;
     private String updatedAt;
 
@@ -213,17 +211,8 @@ public class Issue extends AbstractEntity {
             errors.add("Updated timestamp should not be provided for new issues");
         }
 
-        return errors;    }
-
-    @Override
-    public List<String> validateForUpdate() {
-        List<String> errors = validate();
-
-        if (getIssueId() == null) {
-            errors.add("Issue ID is required for updates");
-        }
-
-        return errors;    }
+        return errors;
+    }
 
     private boolean isValidStatus(int statusId) {
         try {

@@ -68,7 +68,6 @@ public class UserServiceImpl extends AbstractService implements UserService {
             ps.setString(3, user.getEmail());
             ps.setString(4, user.getPasswordHash());
             ps.setInt(5, user.getRoleId());
-            //ps.setTimestamp(6, Timestamp.valueOf(user.getCreatedAt()));
             LocalDateTime ltd = LocalDateTime.parse(user.getCreatedAt());
             ps.setTimestamp(6, Timestamp.valueOf(ltd));
             ps.executeUpdate();
@@ -77,7 +76,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
     }
 
     public void updateUser(User user) throws Exception {
-        List<String> errors = user.validateForUpdate();
+        List<String> errors = user.validate();
         if (!errors.isEmpty()) {
             throw new IllegalArgumentException("Validation failed: " + String.join(", ", errors));
         }

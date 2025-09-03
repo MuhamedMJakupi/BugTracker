@@ -12,7 +12,6 @@ public abstract class AbstractEntity {
 
     public abstract List<String> validate();
     public abstract List<String> validateForCreation();
-    public abstract List<String> validateForUpdate();
 
     @Override
     public boolean equals(Object obj) {

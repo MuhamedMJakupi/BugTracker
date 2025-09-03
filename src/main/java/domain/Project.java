@@ -12,9 +12,6 @@ public class Project extends AbstractEntity {
     private String name;
     private String description;
     private UUID ownerId;
-    //private LocalDateTime createdAt;
-    //private LocalDateTime updatedAt;
-
     private String createdAt;
     private String updatedAt;
 
@@ -113,13 +110,4 @@ public class Project extends AbstractEntity {
         return errors;
     }
 
-    @Override
-    public List<String> validateForUpdate() {
-        List<String> errors = validate();
-
-        if (getProjectId() == null) {
-            errors.add("Project ID is required for updates");
-        }
-        return errors;
-    }
 }

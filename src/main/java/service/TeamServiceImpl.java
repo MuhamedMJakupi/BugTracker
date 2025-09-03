@@ -71,7 +71,6 @@ public class TeamServiceImpl extends AbstractService implements TeamService {
         try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.CREATE_TEAM)) {
             ps.setString(1, team.getTeamId().toString());
             ps.setString(2, team.getName());
-            //ps.setTimestamp(3, Timestamp.valueOf(team.getCreatedAt());
             LocalDateTime ldt = LocalDateTime.parse(team.getCreatedAt());
             ps.setTimestamp(3, Timestamp.valueOf(ldt));
             ps.executeUpdate();
@@ -80,7 +79,7 @@ public class TeamServiceImpl extends AbstractService implements TeamService {
     }
 
     public void updateTeam(Team team) throws Exception {
-        List<String> errors = team.validateForUpdate();
+        List<String> errors = team.validate();
         if (!errors.isEmpty()) {
             throw new IllegalArgumentException("Validation failed: " + String.join(", ", errors));
         }
@@ -128,7 +127,7 @@ public class TeamServiceImpl extends AbstractService implements TeamService {
         teamMember.setTeamId(teamId);
         teamMember.setUserId(userId);
 
-        List<String> errors = teamMember.validateForCreation();
+        List<String> errors = teamMember.validate();
         if (!errors.isEmpty()) {
             throw new IllegalArgumentException("Validation failed: " + String.join(", ", errors));
         }

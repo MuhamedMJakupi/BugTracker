@@ -45,14 +45,6 @@ public class TeamMember {
         return errors;
     }
 
-    public List<String> validateForCreation() {
-        return validate();
-    }
-
-    public List<String> validateForUpdate() {
-        return validate();
-    }
-
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;

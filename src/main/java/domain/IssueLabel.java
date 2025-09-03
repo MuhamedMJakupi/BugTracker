@@ -9,7 +9,6 @@ import java.util.UUID;
 public class IssueLabel extends AbstractEntity {
 
     private String name;
-    //private LocalDateTime createdAt;
     private String createdAt;
     public IssueLabel() {}
 
@@ -80,13 +79,4 @@ public class IssueLabel extends AbstractEntity {
         return errors;
     }
 
-    @Override
-    public List<String> validateForUpdate() {
-        List<String> errors = validate();
-
-        if (getLabelId() == null) {
-            errors.add("Label ID is required for updates");
-        }
-        return errors;
-    }
 }

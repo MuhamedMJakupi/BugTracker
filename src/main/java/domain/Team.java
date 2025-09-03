@@ -9,7 +9,6 @@ import java.util.UUID;
 public class Team extends AbstractEntity {
 
     private String name;
-    //private LocalDateTime createdAt;
     private String createdAt;
 
     public Team() {}
@@ -81,13 +80,4 @@ public class Team extends AbstractEntity {
         return errors;
     }
 
-    @Override
-    public List<String> validateForUpdate() {
-        List<String> errors = validate();
-
-        if (getTeamId() == null) {
-            errors.add("Team id is required");
-        }
-        return errors;
-    }
 }
