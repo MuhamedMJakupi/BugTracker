@@ -15,6 +15,8 @@ public class Issue extends AbstractEntity {
     private UUID projectId;
     private String title;
     private String description;
+    private String status;
+    private String priority;
     private int statusId;
     private int priorityId;
     private UUID reporterId;
@@ -130,6 +132,19 @@ public class Issue extends AbstractEntity {
         updateTimestamp();
     }
 
+    public String getStatusString() {
+        return status;
+    }
+    public void setStatusString(String status) {
+        this.status = status;
+    }
+    public String getPriorityString() {
+        return priority;
+    }
+    public void setPriorityString(String priority) {
+        this.priority = priority;
+    }
+
     private void updateTimestamp() {
         this.updatedAt = LocalDateTime.now().toString();
     }
@@ -173,12 +188,42 @@ public class Issue extends AbstractEntity {
             errors.add("Reporter ID is mandatory");
         }
 
-        if (!isValidStatus(statusId)) {
-            errors.add("Invalid issue status");
+        boolean hasPriorityString = priority != null && !priority.trim().isEmpty();
+        boolean hasPriorityId = priorityId > 0;
+
+        if (hasPriorityString == hasPriorityId) {
+            errors.add("Exactly one of 'priority' or 'priorityId' must be provided, not both");
+        } else {
+            if (hasPriorityString) {
+                try {
+                    IssuePriority.fromName(priority.toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    errors.add("Invalid priority: " + priority);
+                }
+            } else {
+                if (priorityId < 1 || priorityId > 4) {
+                    errors.add("Invalid priorityId: must be between 1 and 4");
+                }
+            }
         }
 
-        if (!isValidPriority(priorityId)) {
-            errors.add("Invalid issue priority");
+        boolean hasStatusString = status != null && !status.trim().isEmpty();
+        boolean hasStatusId = statusId > 0;
+
+        if (hasStatusString == hasStatusId) {
+            errors.add("Exactly one of 'status' or 'statusId' must be provided, not both");
+        } else {
+            if (hasStatusString) {
+                try {
+                    IssueStatus.fromName(status.toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    errors.add("Invalid status: " + status);
+                }
+            } else {
+                if (statusId < 1 || statusId > 4) {
+                    errors.add("Invalid statusId: must be between 1 and 4");
+                }
+            }
         }
 
         if (dueDate != null && !dueDate.trim().isEmpty()) {
@@ -213,25 +258,6 @@ public class Issue extends AbstractEntity {
         return errors;
     }
 
-    private boolean isValidStatus(int statusId) {
-        try {
-            IssueStatus.fromId(statusId);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    private boolean isValidPriority(int priorityId) {
-        try {
-            IssuePriority.fromId(priorityId);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-
     private boolean isValidDateString(String dateStr) {
         if (dateStr == null || dateStr.trim().isEmpty()) {
             return false;
@@ -241,17 +267,6 @@ public class Issue extends AbstractEntity {
             return true;
         } catch (DateTimeParseException e) {
             return false;
-        }
-    }
-
-    public LocalDate getDueDateAsLocalDate() {
-        if (dueDate == null || dueDate.trim().isEmpty()) {
-            return null;
-        }
-        try {
-            return LocalDate.parse(dueDate);
-        } catch (DateTimeParseException e) {
-            return null;
         }
     }
 

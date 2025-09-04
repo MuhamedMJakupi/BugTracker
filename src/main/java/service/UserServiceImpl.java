@@ -3,6 +3,7 @@ package service;
 import common.AbstractService;
 import common.DBValidationUtils;
 import common.PasswordUtils;
+import common.enums.UserRole;
 import domain.User;
 
 import java.sql.*;
@@ -21,9 +22,23 @@ public class UserServiceImpl extends AbstractService implements UserService {
         user.setName(rs.getString("name"));
         user.setEmail(rs.getString("email"));
         user.setPasswordHash(rs.getString("password_hash"));
-        user.setRoleId(rs.getInt("role_id"));
+
+        int roleId = rs.getInt("role_id");
+        user.setRoleId(roleId);
+        try {
+            user.setRoleString(UserRole.fromId(roleId).getName());
+        } catch (IllegalArgumentException e) {
+            user.setRoleString("UNKNOWN");
+        }
         user.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime().toString());
         return user;
+    }
+
+    private void convertRoleStringToId(User user) {
+        if (user.getRoleString() != null && !user.getRoleString().trim().isEmpty()) {
+            UserRole role = UserRole.fromName(user.getRoleString().toUpperCase());
+            user.setRoleId(role.getId());
+        }
     }
 
     public List<User> getAllUsers() throws Exception {
@@ -53,7 +68,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
         if (!errors.isEmpty()) {
             throw new IllegalArgumentException("Validation failed: " + String.join(", ", errors));
         }
-
+        convertRoleStringToId(user);
         validationUtils.validateEmailUnique(user.getEmail());
 
         String hashedPassword = PasswordUtils.hashPassword(user.getPasswordHash());
@@ -81,6 +96,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
             throw new IllegalArgumentException("Validation failed: " + String.join(", ", errors));
         }
 
+        convertRoleStringToId(user);
         User existingUser = getUserById(user.getUserId());
         if (existingUser == null) {
             throw new IllegalArgumentException("User not found");

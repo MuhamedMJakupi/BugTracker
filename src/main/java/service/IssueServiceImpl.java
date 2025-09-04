@@ -2,6 +2,8 @@ package service;
 
 import common.AbstractService;
 import common.DBValidationUtils;
+import common.enums.IssuePriority;
+import common.enums.IssueStatus;
 import domain.Issue;
 import domain.IssueHistory;
 
@@ -22,10 +24,21 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
         issue.setProjectId(UUID.fromString(rs.getString("project_id")));
         issue.setTitle(rs.getString("title"));
         issue.setDescription(rs.getString("description"));
-        issue.setStatusId(rs.getInt("status_id"));
-        issue.setPriorityId(rs.getInt("priority_id"));
-        issue.setReporterId(UUID.fromString(rs.getString("reporter_id")));
 
+        int statusId = rs.getInt("status_id");
+        int priorityId = rs.getInt("priority_id");
+        issue.setStatusId(statusId);
+        issue.setPriorityId(priorityId);
+
+        try {
+            issue.setStatusString(IssueStatus.fromId(statusId).getName());
+            issue.setPriorityString(IssuePriority.fromId(priorityId).getName());
+        } catch (IllegalArgumentException e) {
+            issue.setStatusString("UNKNOWN");
+            issue.setPriorityString("UNKNOWN");
+        }
+
+        issue.setReporterId(UUID.fromString(rs.getString("reporter_id")));
         String assigneeIdStr = rs.getString("assignee_id");
         if (assigneeIdStr != null) {
             issue.setAssigneeId(UUID.fromString(assigneeIdStr));
@@ -33,15 +46,24 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
 
         issue.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime().toString());
         issue.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime().toString());
-
         Date dueDate = rs.getDate("due_date");
         if (dueDate != null) {
             issue.setDueDate(dueDate.toString());  // yyyy-MM-dd
         } else {
             issue.setDueDate(null);
         }
-
         return issue;
+    }
+
+    private void convertEnumStringsToIds(Issue issue) {
+        if (issue.getPriorityString() != null && !issue.getPriorityString().trim().isEmpty()) {
+            IssuePriority priority = IssuePriority.fromName(issue.getPriorityString().toUpperCase());
+            issue.setPriorityId(priority.getId());
+        }
+        if (issue.getStatusString() != null && !issue.getStatusString().trim().isEmpty()) {
+            IssueStatus status = IssueStatus.fromName(issue.getStatusString().toUpperCase());
+            issue.setStatusId(status.getId());
+        }
     }
 
     public List<Issue> getAllIssues() throws Exception {
@@ -72,6 +94,7 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
         if (!errors.isEmpty()) {
             throw new IllegalArgumentException("Validation failed: " + String.join(", ", errors));
         }
+        convertEnumStringsToIds(issue);
 
         if(issue.getAssigneeId() != null){
             validationUtils.validateUserExists(issue.getAssigneeId(),"Assignee");
@@ -121,6 +144,7 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
         if (!errors.isEmpty()) {
             throw new IllegalArgumentException("Validation failed: " + String.join(", ", errors));
         }
+        convertEnumStringsToIds(issue);
 
         Issue existingIssue = getIssueById(issue.getIssueId());
         if (existingIssue == null) {

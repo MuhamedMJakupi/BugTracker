@@ -1,6 +1,7 @@
 package domain;
 
 import common.AbstractEntity;
+import common.enums.UserRole;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +13,7 @@ public class User extends AbstractEntity {
     private String name;
     private String email;
     private String passwordHash;
+    private String role;
     private int roleId;
     private String createdAt;
 
@@ -41,6 +43,9 @@ public class User extends AbstractEntity {
 
     public int getRoleId() { return roleId; }
     public void setRoleId(int roleId) { this.roleId = roleId; }
+
+    public String getRoleString() { return role; }
+    public void setRoleString(String role) { this.role = role; }
 
     public String getCreatedAt() { return createdAt; }
     public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }
@@ -72,8 +77,22 @@ public class User extends AbstractEntity {
             errors.add("Password hash too long");
         }
 
-        if (roleId < 1 || roleId > 4) {
-            errors.add("Invalid role");
+        boolean hasRole = role != null && !role.trim().isEmpty();
+        boolean hasRoleId = roleId > 0;
+        if (hasRole == hasRoleId) {
+            errors.add("Exactly one of 'role' or 'roleId' must be provided, not both");
+        } else {
+            if (hasRole) {
+                try {
+                    UserRole.fromName(role.toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    errors.add("Invalid role: " + role);
+                }
+            } else {
+                if (roleId < 1 || roleId > 4) {
+                    errors.add("Invalid roleId: must be between 1 and 4");
+                }
+            }
         }
         return errors;
     }
@@ -91,5 +110,4 @@ public class User extends AbstractEntity {
         }
         return errors;
     }
-
 }
