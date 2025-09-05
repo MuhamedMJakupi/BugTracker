@@ -12,16 +12,17 @@ public class Project extends AbstractEntity {
     private String name;
     private String description;
     private UUID ownerId;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private String createdAt;
+    private String updatedAt;
+
 
     public Project() {}
 
     public Project(String name, String description, UUID ownerId) {
 
         setProjectId(UUID.randomUUID());
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now().toString();
+        this.updatedAt = LocalDateTime.now().toString();
 
         this.name = name;
         this.description = description;
@@ -49,14 +50,14 @@ public class Project extends AbstractEntity {
         updateTimestamp();
     }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public String getCreatedAt() { return createdAt; }
+    public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }
 
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public String getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(String updatedAt) { this.updatedAt = updatedAt; }
 
     private void updateTimestamp() {
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now().toString();
     }
 
     @Override
@@ -109,13 +110,4 @@ public class Project extends AbstractEntity {
         return errors;
     }
 
-    @Override
-    public List<String> validateForUpdate() {
-        List<String> errors = validate();
-
-        if (getProjectId() == null) {
-            errors.add("Project ID is required for updates");
-        }
-        return errors;
-    }
 }

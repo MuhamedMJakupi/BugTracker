@@ -113,7 +113,6 @@ public class DBValidationUtils extends AbstractService {
     public boolean issueTitleDifferentAndExistsInProject(String newTitle, UUID projectId, String currentTitle) throws Exception {
         if (newTitle == null || projectId == null) return false;
 
-        // If titles are the same (case-insensitive), no conflict
         if (currentTitle != null && newTitle.trim().equalsIgnoreCase(currentTitle.trim())) {
             return false;
         }

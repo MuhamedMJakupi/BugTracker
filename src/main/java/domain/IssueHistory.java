@@ -1,7 +1,6 @@
 package domain;
 
 import common.AbstractEntity;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -14,7 +13,7 @@ public class IssueHistory extends AbstractEntity {
     private String fieldName;        // status, assignee, priority...
     private String oldValue;
     private String newValue;
-    private LocalDateTime changedAt;
+    private String changedAt;
 
     public UUID getHistoryId() {
         return getId();
@@ -39,11 +38,11 @@ public class IssueHistory extends AbstractEntity {
     public String getNewValue() { return newValue; }
     public void setNewValue(String newValue) { this.newValue = newValue; }
 
-    public LocalDateTime getChangedAt() { return changedAt; }
-    public void setChangedAt(LocalDateTime changedAt) { this.changedAt = changedAt; }
+    public String getChangedAt() { return changedAt; }
+    public void setChangedAt(String changedAt) { this.changedAt = changedAt; }
 
     private static final Set<String> ALLOWED_FIELDS =
-            Set.of("status", "assignee", "priority", "title", "description","duedate");
+            Set.of("statusId", "assigneeId", "priorityId", "title", "description","duedate");
 
     @Override
     public List<String> validate() {
@@ -84,16 +83,6 @@ public class IssueHistory extends AbstractEntity {
 
         if (changedAt != null) {
             errors.add("Changed timestamp should not be provided for new history entries");
-        }
-        return errors;
-    }
-
-    @Override
-    public List<String> validateForUpdate() {
-        List<String> errors = validate();
-
-        if (getHistoryId() == null) {
-            errors.add("History ID is required for updates");
         }
         return errors;
     }

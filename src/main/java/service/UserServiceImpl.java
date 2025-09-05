@@ -3,9 +3,11 @@ package service;
 import common.AbstractService;
 import common.DBValidationUtils;
 import common.PasswordUtils;
+import common.enums.UserRole;
 import domain.User;
 
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -20,9 +22,23 @@ public class UserServiceImpl extends AbstractService implements UserService {
         user.setName(rs.getString("name"));
         user.setEmail(rs.getString("email"));
         user.setPasswordHash(rs.getString("password_hash"));
-        user.setRoleId(rs.getInt("role_id"));
-        user.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+
+        int roleId = rs.getInt("role_id");
+        user.setRoleId(roleId);
+        try {
+            user.setRoleString(UserRole.fromId(roleId).getName());
+        } catch (IllegalArgumentException e) {
+            user.setRoleString("UNKNOWN");
+        }
+        user.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime().toString());
         return user;
+    }
+
+    private void convertRoleStringToId(User user) {
+        if (user.getRoleString() != null && !user.getRoleString().trim().isEmpty()) {
+            UserRole role = UserRole.fromName(user.getRoleString().toUpperCase());
+            user.setRoleId(role.getId());
+        }
     }
 
     public List<User> getAllUsers() throws Exception {
@@ -52,14 +68,14 @@ public class UserServiceImpl extends AbstractService implements UserService {
         if (!errors.isEmpty()) {
             throw new IllegalArgumentException("Validation failed: " + String.join(", ", errors));
         }
-
+        convertRoleStringToId(user);
         validationUtils.validateEmailUnique(user.getEmail());
 
         String hashedPassword = PasswordUtils.hashPassword(user.getPasswordHash());
         user.setPasswordHash(hashedPassword);
 
         user.setUserId(UUID.randomUUID());
-        user.setCreatedAt(java.time.LocalDateTime.now());
+        user.setCreatedAt(java.time.LocalDateTime.now().toString());
 
         try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.CREATE_USER)) {
             ps.setString(1, user.getUserId().toString());
@@ -67,18 +83,20 @@ public class UserServiceImpl extends AbstractService implements UserService {
             ps.setString(3, user.getEmail());
             ps.setString(4, user.getPasswordHash());
             ps.setInt(5, user.getRoleId());
-            ps.setTimestamp(6, Timestamp.valueOf(user.getCreatedAt()));
+            LocalDateTime ltd = LocalDateTime.parse(user.getCreatedAt());
+            ps.setTimestamp(6, Timestamp.valueOf(ltd));
             ps.executeUpdate();
         }
         return user;
     }
 
     public void updateUser(User user) throws Exception {
-        List<String> errors = user.validateForUpdate();
+        List<String> errors = user.validate();
         if (!errors.isEmpty()) {
             throw new IllegalArgumentException("Validation failed: " + String.join(", ", errors));
         }
 
+        convertRoleStringToId(user);
         User existingUser = getUserById(user.getUserId());
         if (existingUser == null) {
             throw new IllegalArgumentException("User not found");

@@ -5,6 +5,7 @@ import common.DBValidationUtils;
 import domain.Project;
 
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -20,8 +21,8 @@ public class ProjectServiceImpl extends AbstractService implements  ProjectServi
         project.setName(rs.getString("name"));
         project.setDescription(rs.getString("description"));
         project.setOwnerId(UUID.fromString(rs.getString("owner_id")));
-        project.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
-        project.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
+        project.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime().toString());
+        project.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime().toString());
         return project;
     }
 
@@ -59,16 +60,18 @@ public class ProjectServiceImpl extends AbstractService implements  ProjectServi
         validationUtils.validateProjectNameUnique(project.getName());
 
         project.setProjectId(UUID.randomUUID());
-        project.setCreatedAt(java.time.LocalDateTime.now());
-        project.setUpdatedAt(java.time.LocalDateTime.now());
+        project.setCreatedAt(java.time.LocalDateTime.now().toString());
+        project.setUpdatedAt(java.time.LocalDateTime.now().toString());
 
         try(Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.CREATE_PROJECT)) {
             ps.setString(1,project.getProjectId().toString());
             ps.setString(2, project.getName());
             ps.setString(3, project.getDescription());
             ps.setString(4,project.getOwnerId().toString());
-            ps.setTimestamp(5, Timestamp.valueOf(project.getCreatedAt()));
-            ps.setTimestamp(6, Timestamp.valueOf(project.getUpdatedAt()));
+            LocalDateTime ltd = LocalDateTime.parse(project.getCreatedAt());
+            ps.setTimestamp(5, Timestamp.valueOf(ltd));
+            LocalDateTime ldt2 = LocalDateTime.parse(project.getUpdatedAt());
+            ps.setTimestamp(6, Timestamp.valueOf(ldt2));
 
             ps.executeUpdate();
         }
@@ -78,7 +81,7 @@ public class ProjectServiceImpl extends AbstractService implements  ProjectServi
 
     public void updateProject(Project project) throws Exception {
 
-        List<String> errors = project.validateForUpdate();
+        List<String> errors = project.validate();
         if (!errors.isEmpty()) {
             throw new IllegalArgumentException("Validation failed: " + String.join(", ", errors));
         }
@@ -92,13 +95,14 @@ public class ProjectServiceImpl extends AbstractService implements  ProjectServi
         validationUtils.validateProjectNameUniqueForUpdate(project.getName(), project.getProjectId());
 
         project.setCreatedAt(existingProject.getCreatedAt());
-        project.setUpdatedAt(java.time.LocalDateTime.now());
+        project.setUpdatedAt(java.time.LocalDateTime.now().toString());
 
         try(Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.UPDATE_PROJECT)) {
             ps.setString(1, project.getName());
             ps.setString(2, project.getDescription());
             ps.setString(3, project.getOwnerId().toString());
-            ps.setTimestamp(4, Timestamp.valueOf(project.getUpdatedAt()));
+            LocalDateTime ltd = LocalDateTime.parse(project.getUpdatedAt());
+            ps.setTimestamp(4, Timestamp.valueOf(ltd));
             ps.setString(5, project.getProjectId().toString());
             ps.executeUpdate();
         }

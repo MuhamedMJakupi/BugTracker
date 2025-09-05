@@ -1,6 +1,7 @@
 package domain;
 
 import common.AbstractEntity;
+import common.enums.UserRole;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,14 +13,15 @@ public class User extends AbstractEntity {
     private String name;
     private String email;
     private String passwordHash;
+    private String role;
     private int roleId;
-    private LocalDateTime createdAt;
+    private String createdAt;
 
     public User() {}
 
     public User(String name, String email, String passwordHash, int roleId) {
         setUserId(UUID.randomUUID());
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now().toString();
 
         this.name = name;
         this.email = email;
@@ -42,8 +44,11 @@ public class User extends AbstractEntity {
     public int getRoleId() { return roleId; }
     public void setRoleId(int roleId) { this.roleId = roleId; }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public String getRoleString() { return role; }
+    public void setRoleString(String role) { this.role = role; }
+
+    public String getCreatedAt() { return createdAt; }
+    public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }
 
     private static final Pattern EMAIL_PATTERN =
             Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
@@ -72,8 +77,22 @@ public class User extends AbstractEntity {
             errors.add("Password hash too long");
         }
 
-        if (roleId < 1 || roleId > 4) {
-            errors.add("Invalid role");
+        boolean hasRole = role != null && !role.trim().isEmpty();
+        boolean hasRoleId = roleId > 0;
+        if (hasRole == hasRoleId) {
+            errors.add("Exactly one of 'role' or 'roleId' must be provided, not both");
+        } else {
+            if (hasRole) {
+                try {
+                    UserRole.fromName(role.toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    errors.add("Invalid role: " + role);
+                }
+            } else {
+                if (roleId < 1 || roleId > 4) {
+                    errors.add("Invalid roleId: must be between 1 and 4");
+                }
+            }
         }
         return errors;
     }
@@ -88,16 +107,6 @@ public class User extends AbstractEntity {
 
         if (createdAt != null) {
             errors.add("Created timestamp should not be provided for new users");
-        }
-        return errors;
-    }
-
-    @Override
-    public List<String> validateForUpdate() {
-        List<String> errors = validate();
-
-        if (getUserId() == null) {
-            errors.add("User ID is required for updates");
         }
         return errors;
     }

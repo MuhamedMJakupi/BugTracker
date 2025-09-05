@@ -2,6 +2,8 @@ package service;
 
 import common.AbstractService;
 import common.DBValidationUtils;
+import common.enums.IssuePriority;
+import common.enums.IssueStatus;
 import domain.Issue;
 import domain.IssueHistory;
 
@@ -17,45 +19,51 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
     private final DBValidationUtils validationUtils = new DBValidationUtils();
 
     private Issue mapIssue(ResultSet rs) throws Exception {
-//        Issue issue = new Issue();
-//        issue.setIssueId(UUID.fromString(rs.getString("issue_id")));
-//        issue.setProjectId(UUID.fromString(rs.getString("project_id")));
-//        issue.setTitle(rs.getString("title"));
-//        issue.setDescription(rs.getString("description"));
-//        issue.setStatusId(rs.getInt("status_id"));
-//        issue.setPriorityId(rs.getInt("priority_id"));
-//        issue.setReporterId(UUID.fromString(rs.getString("reporter_id")));
-//        issue.setAssigneeId(UUID.fromString(rs.getString("assignee_id")));
-//        issue.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
-//        issue.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
-//        issue.setDueDate(rs.getDate("due_date").toLocalDate());
-//        return issue;
-
         Issue issue = new Issue();
         issue.setIssueId(UUID.fromString(rs.getString("issue_id")));
         issue.setProjectId(UUID.fromString(rs.getString("project_id")));
         issue.setTitle(rs.getString("title"));
         issue.setDescription(rs.getString("description"));
-        issue.setStatusId(rs.getInt("status_id"));
-        issue.setPriorityId(rs.getInt("priority_id"));
-        issue.setReporterId(UUID.fromString(rs.getString("reporter_id")));
 
+        int statusId = rs.getInt("status_id");
+        int priorityId = rs.getInt("priority_id");
+        issue.setStatusId(statusId);
+        issue.setPriorityId(priorityId);
+
+        try {
+            issue.setStatusString(IssueStatus.fromId(statusId).getName());
+            issue.setPriorityString(IssuePriority.fromId(priorityId).getName());
+        } catch (IllegalArgumentException e) {
+            issue.setStatusString("UNKNOWN");
+            issue.setPriorityString("UNKNOWN");
+        }
+
+        issue.setReporterId(UUID.fromString(rs.getString("reporter_id")));
         String assigneeIdStr = rs.getString("assignee_id");
         if (assigneeIdStr != null) {
             issue.setAssigneeId(UUID.fromString(assigneeIdStr));
         }
 
-        issue.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
-        issue.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
-
+        issue.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime().toString());
+        issue.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime().toString());
         Date dueDate = rs.getDate("due_date");
         if (dueDate != null) {
             issue.setDueDate(dueDate.toString());  // yyyy-MM-dd
         } else {
             issue.setDueDate(null);
         }
-
         return issue;
+    }
+
+    private void convertEnumStringsToIds(Issue issue) {
+        if (issue.getPriorityString() != null && !issue.getPriorityString().trim().isEmpty()) {
+            IssuePriority priority = IssuePriority.fromName(issue.getPriorityString().toUpperCase());
+            issue.setPriorityId(priority.getId());
+        }
+        if (issue.getStatusString() != null && !issue.getStatusString().trim().isEmpty()) {
+            IssueStatus status = IssueStatus.fromName(issue.getStatusString().toUpperCase());
+            issue.setStatusId(status.getId());
+        }
     }
 
     public List<Issue> getAllIssues() throws Exception {
@@ -86,8 +94,9 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
         if (!errors.isEmpty()) {
             throw new IllegalArgumentException("Validation failed: " + String.join(", ", errors));
         }
+        convertEnumStringsToIds(issue);
 
-        if(issue.getAssigneeId() != null){//this can be assigneeId will check, was issueId changed to assigne will check
+        if(issue.getAssigneeId() != null){
             validationUtils.validateUserExists(issue.getAssigneeId(),"Assignee");
         }
         validationUtils.validateUserExists(issue.getReporterId(), "Reporter");
@@ -95,8 +104,8 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
         validationUtils.validateIssueTitleUniqueInProject(issue.getTitle(), issue.getProjectId());
 
         issue.setIssueId(UUID.randomUUID());
-        issue.setCreatedAt(java.time.LocalDateTime.now());
-        issue.setUpdatedAt(java.time.LocalDateTime.now());
+        issue.setCreatedAt(java.time.LocalDateTime.now().toString());
+        issue.setUpdatedAt(java.time.LocalDateTime.now().toString());
 
         try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.CREATE_ISSUE)) {
             ps.setString(1, issue.getIssueId().toString());
@@ -111,9 +120,10 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
             } else {
                 ps.setNull(8, java.sql.Types.VARCHAR);
             }
-            ps.setTimestamp(9, Timestamp.valueOf(issue.getCreatedAt()));
-            ps.setTimestamp(10, Timestamp.valueOf(issue.getUpdatedAt()));
-
+            LocalDateTime ldt = LocalDateTime.parse(issue.getCreatedAt());
+            ps.setTimestamp(9, Timestamp.valueOf(ldt));
+            LocalDateTime ldt2 = LocalDateTime.parse(issue.getUpdatedAt());
+            ps.setTimestamp(10, Timestamp.valueOf(ldt2));
             if (issue.getDueDate() != null && !issue.getDueDate().trim().isEmpty()) {
                 try {
                     ps.setDate(11, java.sql.Date.valueOf(issue.getDueDate()));
@@ -123,7 +133,6 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
             } else {
                 ps.setNull(11, java.sql.Types.DATE);
             }
-
             ps.executeUpdate();
         }
         return issue;
@@ -131,10 +140,11 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
 
     @Override
     public void updateIssue(Issue issue, UUID changedByUserId) throws Exception {
-        List<String> errors = issue.validateForUpdate();
+        List<String> errors = issue.validate();
         if (!errors.isEmpty()) {
             throw new IllegalArgumentException("Validation failed: " + String.join(", ", errors));
         }
+        convertEnumStringsToIds(issue);
 
         Issue existingIssue = getIssueById(issue.getIssueId());
         if (existingIssue == null) {
@@ -216,7 +226,7 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
         }
 
         issue.setCreatedAt(existingIssue.getCreatedAt());
-        issue.setUpdatedAt(LocalDateTime.now());
+        issue.setUpdatedAt(LocalDateTime.now().toString());
 
         try (Connection con = getConnection();
              PreparedStatement ps = con.prepareStatement(SQL.UPDATE_ISSUE)) {
@@ -231,9 +241,8 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
             } else {
                 ps.setNull(6, java.sql.Types.VARCHAR);
             }
-
-            ps.setTimestamp(7, Timestamp.valueOf(issue.getUpdatedAt()));
-
+            LocalDateTime ldt = LocalDateTime.parse(issue.getUpdatedAt());
+            ps.setTimestamp(7, Timestamp.valueOf(ldt));
             if (issue.getDueDate() != null && !issue.getDueDate().trim().isEmpty()) {
                 try {
                     ps.setDate(8, java.sql.Date.valueOf(issue.getDueDate()));
@@ -243,7 +252,6 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
             } else {
                 ps.setNull(8, java.sql.Types.DATE);
             }
-
             ps.setString(9, issue.getIssueId().toString());
             ps.executeUpdate();
         }
@@ -354,7 +362,7 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
                     history.setFieldName(rs.getString("field_name"));
                     history.setOldValue(rs.getString("old_value"));
                     history.setNewValue(rs.getString("new_value"));
-                    history.setChangedAt(rs.getTimestamp("changed_at").toLocalDateTime());
+                    history.setChangedAt(rs.getTimestamp("changed_at").toLocalDateTime().toString());
                     historyList.add(history);
                 }
             }
@@ -363,7 +371,7 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
     }
     public void recordHistoryChange(IssueHistory history) throws Exception {
         history.setHistoryId(UUID.randomUUID());
-        history.setChangedAt(LocalDateTime.now());
+        history.setChangedAt(LocalDateTime.now().toString());
 
         try (Connection con = getConnection();
              PreparedStatement ps = con.prepareStatement(SQL.RECORD_HISTORY)) {
@@ -373,7 +381,8 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
             ps.setString(4, history.getFieldName());
             ps.setString(5, history.getOldValue());
             ps.setString(6, history.getNewValue());
-            ps.setTimestamp(7, Timestamp.valueOf(history.getChangedAt()));
+            LocalDateTime ldt = LocalDateTime.parse(history.getChangedAt());
+            ps.setTimestamp(7, Timestamp.valueOf(ldt));
             ps.executeUpdate();
         }
     }
@@ -415,8 +424,6 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
                 INSERT INTO issue_history (history_id, issue_id, changed_by_user_id, field_name, old_value, new_value, changed_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
                 """;
-
-
     }
 
     //---------- Down are 2 different methods of update, separately with/without history track --------------------

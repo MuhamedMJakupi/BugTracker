@@ -15,12 +15,14 @@ public class Issue extends AbstractEntity {
     private UUID projectId;
     private String title;
     private String description;
+    private String status;
+    private String priority;
     private int statusId;
     private int priorityId;
     private UUID reporterId;
     private UUID assigneeId;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private String createdAt;
+    private String updatedAt;
     private String dueDate;
 
     public Issue() {}
@@ -28,8 +30,8 @@ public class Issue extends AbstractEntity {
     public Issue(UUID projectId, String title, String description, UUID reporterId) {
 
         setIssueId(UUID.randomUUID());
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now().toString();
+        this.updatedAt = LocalDateTime.now().toString();
         this.statusId = IssueStatus.TODO.getId();        // Default status
         this.priorityId = IssuePriority.MEDIUM.getId();  // Default priority
 
@@ -45,8 +47,8 @@ public class Issue extends AbstractEntity {
                  UUID assigneeId, int statusId, int priorityId, String dueDate) {
 
         setIssueId(UUID.randomUUID());
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now().toString();
+        this.updatedAt = LocalDateTime.now().toString();
 
         this.projectId = projectId;
         this.title = title;
@@ -100,11 +102,11 @@ public class Issue extends AbstractEntity {
         updateTimestamp();
     }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public String getCreatedAt() { return createdAt; }
+    public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }
 
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public String getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(String updatedAt) { this.updatedAt = updatedAt; }
 
     public String getDueDate() { return dueDate; }
     public void setDueDate(String dueDate) {
@@ -130,8 +132,21 @@ public class Issue extends AbstractEntity {
         updateTimestamp();
     }
 
+    public String getStatusString() {
+        return status;
+    }
+    public void setStatusString(String status) {
+        this.status = status;
+    }
+    public String getPriorityString() {
+        return priority;
+    }
+    public void setPriorityString(String priority) {
+        this.priority = priority;
+    }
+
     private void updateTimestamp() {
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now().toString();
     }
 
     @Override
@@ -173,12 +188,42 @@ public class Issue extends AbstractEntity {
             errors.add("Reporter ID is mandatory");
         }
 
-        if (!isValidStatus(statusId)) {
-            errors.add("Invalid issue status");
+        boolean hasPriorityString = priority != null && !priority.trim().isEmpty();
+        boolean hasPriorityId = priorityId > 0;
+
+        if (hasPriorityString == hasPriorityId) {
+            errors.add("Exactly one of 'priority' or 'priorityId' must be provided, not both");
+        } else {
+            if (hasPriorityString) {
+                try {
+                    IssuePriority.fromName(priority.toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    errors.add("Invalid priority: " + priority);
+                }
+            } else {
+                if (priorityId < 1 || priorityId > 4) {
+                    errors.add("Invalid priorityId: must be between 1 and 4");
+                }
+            }
         }
 
-        if (!isValidPriority(priorityId)) {
-            errors.add("Invalid issue priority");
+        boolean hasStatusString = status != null && !status.trim().isEmpty();
+        boolean hasStatusId = statusId > 0;
+
+        if (hasStatusString == hasStatusId) {
+            errors.add("Exactly one of 'status' or 'statusId' must be provided, not both");
+        } else {
+            if (hasStatusString) {
+                try {
+                    IssueStatus.fromName(status.toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    errors.add("Invalid status: " + status);
+                }
+            } else {
+                if (statusId < 1 || statusId > 4) {
+                    errors.add("Invalid statusId: must be between 1 and 4");
+                }
+            }
         }
 
         if (dueDate != null && !dueDate.trim().isEmpty()) {
@@ -210,36 +255,8 @@ public class Issue extends AbstractEntity {
             errors.add("Updated timestamp should not be provided for new issues");
         }
 
-        return errors;    }
-
-    @Override
-    public List<String> validateForUpdate() {
-        List<String> errors = validate();
-
-        if (getIssueId() == null) {
-            errors.add("Issue ID is required for updates");
-        }
-
-        return errors;    }
-
-    private boolean isValidStatus(int statusId) {
-        try {
-            IssueStatus.fromId(statusId);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+        return errors;
     }
-
-    private boolean isValidPriority(int priorityId) {
-        try {
-            IssuePriority.fromId(priorityId);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
 
     private boolean isValidDateString(String dateStr) {
         if (dateStr == null || dateStr.trim().isEmpty()) {
@@ -250,17 +267,6 @@ public class Issue extends AbstractEntity {
             return true;
         } catch (DateTimeParseException e) {
             return false;
-        }
-    }
-
-    public LocalDate getDueDateAsLocalDate() {
-        if (dueDate == null || dueDate.trim().isEmpty()) {
-            return null;
-        }
-        try {
-            return LocalDate.parse(dueDate);
-        } catch (DateTimeParseException e) {
-            return null;
         }
     }
 

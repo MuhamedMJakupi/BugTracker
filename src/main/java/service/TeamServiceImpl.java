@@ -7,6 +7,7 @@ import domain.TeamMember;
 import domain.User;
 
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -19,7 +20,7 @@ public class TeamServiceImpl extends AbstractService implements TeamService {
         Team team = new Team();
         team.setTeamId(UUID.fromString(rs.getString("team_id")));
         team.setName(rs.getString("name"));
-        team.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+        team.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime().toString());
         return team;
     }
 
@@ -30,7 +31,7 @@ public class TeamServiceImpl extends AbstractService implements TeamService {
         user.setEmail(rs.getString("email"));
         user.setPasswordHash(rs.getString("password_hash"));
         user.setRoleId(rs.getInt("role_id"));
-        user.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+        user.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime().toString());
         return user;
     }
 
@@ -65,19 +66,20 @@ public class TeamServiceImpl extends AbstractService implements TeamService {
 
         validationUtils.validateTeamNameUnique(team.getName());
         team.setTeamId(UUID.randomUUID());
-        team.setCreatedAt(java.time.LocalDateTime.now());
+        team.setCreatedAt(java.time.LocalDateTime.now().toString());
 
         try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.CREATE_TEAM)) {
             ps.setString(1, team.getTeamId().toString());
             ps.setString(2, team.getName());
-            ps.setTimestamp(3, Timestamp.valueOf(team.getCreatedAt()));
+            LocalDateTime ldt = LocalDateTime.parse(team.getCreatedAt());
+            ps.setTimestamp(3, Timestamp.valueOf(ldt));
             ps.executeUpdate();
         }
         return team;
     }
 
     public void updateTeam(Team team) throws Exception {
-        List<String> errors = team.validateForUpdate();
+        List<String> errors = team.validate();
         if (!errors.isEmpty()) {
             throw new IllegalArgumentException("Validation failed: " + String.join(", ", errors));
         }
@@ -125,7 +127,7 @@ public class TeamServiceImpl extends AbstractService implements TeamService {
         teamMember.setTeamId(teamId);
         teamMember.setUserId(userId);
 
-        List<String> errors = teamMember.validateForCreation();
+        List<String> errors = teamMember.validate();
         if (!errors.isEmpty()) {
             throw new IllegalArgumentException("Validation failed: " + String.join(", ", errors));
         }

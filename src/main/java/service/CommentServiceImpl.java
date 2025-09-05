@@ -5,6 +5,7 @@ import common.DBValidationUtils;
 import domain.Comment;
 
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -19,7 +20,7 @@ public class CommentServiceImpl extends AbstractService implements  CommentServi
         comment.setIssueId(UUID.fromString(rs.getString("issue_id")));
         comment.setUserId(UUID.fromString(rs.getString("user_id")));
         comment.setText(rs.getString("text"));
-        comment.setTimestamp(rs.getTimestamp("timestamp").toLocalDateTime());
+        comment.setTimestamp(rs.getTimestamp("timestamp").toLocalDateTime().toString());
 
         return comment;
     }
@@ -58,21 +59,22 @@ public class CommentServiceImpl extends AbstractService implements  CommentServi
         validationUtils.validateUserExists(comment.getUserId(),"User");
         validationUtils.validateIssueExists(comment.getIssueId(),"Issue");
         comment.setCommentId(UUID.randomUUID());
-        comment.setTimestamp(java.time.LocalDateTime.now());
+        comment.setTimestamp(LocalDateTime.now().toString());
 
         try(Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.CREATE_COMMENT)) {
             ps.setString(1, comment.getCommentId().toString());
             ps.setString(2, comment.getIssueId().toString());
             ps.setString(3, comment.getUserId().toString());
             ps.setString(4, comment.getText());
-            ps.setTimestamp(5, Timestamp.valueOf(comment.getTimestamp()));
+            LocalDateTime ldt = LocalDateTime.parse(comment.getTimestamp());
+            ps.setTimestamp(5, Timestamp.valueOf(ldt));
             ps.executeUpdate();
         }
         return comment;
     }
 
     public void updateComment(Comment comment) throws Exception {
-        List<String> errors = comment.validateForUpdate();
+        List<String> errors = comment.validate();
         if (!errors.isEmpty()) {
             throw new IllegalArgumentException("Validation failed: " + String.join(", ", errors));
         }
@@ -85,11 +87,12 @@ public class CommentServiceImpl extends AbstractService implements  CommentServi
 
         validationUtils.validateUserExists(comment.getUserId(),"User");
         validationUtils.validateIssueExists(comment.getIssueId(),"Issue");
-        comment.setTimestamp(java.time.LocalDateTime.now());
+        comment.setTimestamp(LocalDateTime.now().toString());
 
         try(Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.UPDATE_COMMENT)) {
             ps.setString(1, comment.getText());
-            ps.setTimestamp(2,Timestamp.valueOf(comment.getTimestamp()));
+            LocalDateTime ldt = LocalDateTime.parse(comment.getTimestamp());
+            ps.setTimestamp(2, Timestamp.valueOf(ldt));
             ps.setString(3, comment.getCommentId().toString());
             ps.executeUpdate();
         }
