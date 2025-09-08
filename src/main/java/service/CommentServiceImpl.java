@@ -38,6 +38,7 @@ public class CommentServiceImpl extends AbstractService implements  CommentServi
     }
 
     public Comment getCommentById (UUID commentId) throws Exception {
+        validationUtils.validateCommentExists(commentId,"Comment");
         try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.COMMENT_BY_ID)) {
             ps.setString(1, commentId.toString());
             ResultSet rs = ps.executeQuery();
@@ -79,12 +80,7 @@ public class CommentServiceImpl extends AbstractService implements  CommentServi
             throw new IllegalArgumentException("Validation failed: " + String.join(", ", errors));
         }
 
-        Comment existingComment = getCommentById(comment.getCommentId());
-
-        if(existingComment == null ){
-            throw new IllegalArgumentException("Comment not found: " + comment.getCommentId());
-        }
-
+        validationUtils.validateCommentExists(comment.getCommentId(),"Comment");
         validationUtils.validateUserExists(comment.getUserId(),"User");
         validationUtils.validateIssueExists(comment.getIssueId(),"Issue");
         comment.setTimestamp(LocalDateTime.now().toString());
@@ -99,10 +95,7 @@ public class CommentServiceImpl extends AbstractService implements  CommentServi
     }
 
     public void deleteComment(UUID commentId) throws Exception {
-        Comment existingComment = getCommentById(commentId);
-        if (existingComment == null) {
-            throw new IllegalArgumentException("Comment not found: " + commentId);
-        }
+        validationUtils.validateCommentExists(commentId,"Comment");
         try(Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.DELETE_COMMENT)) {
             ps.setString(1, commentId.toString());
             ps.executeUpdate();
@@ -110,6 +103,7 @@ public class CommentServiceImpl extends AbstractService implements  CommentServi
     }
 
     public List<Comment> getCommentsByIssueId(UUID issueId) throws Exception {
+        validationUtils.validateIssueExists(issueId,"Issue");
         List<Comment> comments = new ArrayList<>();
         try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.COMMENT_BY_ISSUE_ID)) {
             ps.setString(1, issueId.toString());
@@ -122,6 +116,7 @@ public class CommentServiceImpl extends AbstractService implements  CommentServi
     }
 
     public List<Comment> getCommentsByUserId(UUID userId) throws Exception {
+        validationUtils.validateUserExists(userId,"User");
         List<Comment> comments = new ArrayList<>();
         try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.COMMENT_BY_USER_ID)) {
             ps.setString(1, userId.toString());

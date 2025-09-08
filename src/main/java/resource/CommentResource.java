@@ -28,10 +28,6 @@ public class CommentResource extends AbstractResource {
     @Path("/{id}")
         public Response getCommentById(@PathParam("id") String id) throws Exception {
             Comment comment = commentService.getCommentById(UUID.fromString(id));
-            if (comment == null) {
-                throw new IllegalArgumentException("Comment not found");
-
-            }
             return Response.ok(comment).build();
     }
 

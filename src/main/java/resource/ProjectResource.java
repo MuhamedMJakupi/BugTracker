@@ -28,9 +28,6 @@ public class ProjectResource extends AbstractResource {
     @Path("/{id}")
     public Response getProjectById(@PathParam("id") String id) throws Exception {
             Project project = projectService.getProjectById(UUID.fromString(id));
-            if (project == null) {
-                throw new IllegalArgumentException("Project not found");
-            }
             return Response.ok(project).build();
     }
 

@@ -39,7 +39,7 @@ public class ProjectServiceImpl extends AbstractService implements  ProjectServi
     }
 
     public Project getProjectById(UUID id) throws Exception {
-
+        validationUtils.validateProjectExists(id, "Project");
         try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.PROJECT_BY_ID)) {
             ps.setString(1, id.toString());
             ResultSet rs = ps.executeQuery();
@@ -57,6 +57,7 @@ public class ProjectServiceImpl extends AbstractService implements  ProjectServi
             throw new IllegalArgumentException("Validation failed: " + String.join(", ", errors));
         }
 
+        validationUtils.validateUserExists(project.getOwnerId(), "Owner");
         validationUtils.validateProjectNameUnique(project.getName());
 
         project.setProjectId(UUID.randomUUID());
@@ -87,11 +88,10 @@ public class ProjectServiceImpl extends AbstractService implements  ProjectServi
         }
 
         Project existingProject = getProjectById(project.getProjectId());
-
         if(existingProject == null) {
             throw new IllegalArgumentException(project.getProjectId() + " does not exist");
         }
-
+        validationUtils.validateUserExists(project.getOwnerId(), "Owner");
         validationUtils.validateProjectNameUniqueForUpdate(project.getName(), project.getProjectId());
 
         project.setCreatedAt(existingProject.getCreatedAt());
@@ -109,11 +109,7 @@ public class ProjectServiceImpl extends AbstractService implements  ProjectServi
     }
 
     public void deleteProject(UUID id) throws Exception {
-
-        Project existingProject = getProjectById(id);
-        if(existingProject==null) {
-            throw new IllegalArgumentException(id + " not found");
-        }
+        validationUtils.validateProjectExists(id, "Project");
 
         try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.DELETE_PROJECT)) {
             ps.setString(1, id.toString());
@@ -135,6 +131,7 @@ public class ProjectServiceImpl extends AbstractService implements  ProjectServi
     }
 
     public List<Project> getProjectsByOwner(UUID ownerId) throws Exception {
+        validationUtils.validateUserExists(ownerId, "Owner");
         List<Project> projects = new ArrayList<>();
         try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.PROJECT_BY_OWNER_ID)) {
             ps.setString(1, ownerId.toString());

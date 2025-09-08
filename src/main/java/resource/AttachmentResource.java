@@ -28,9 +28,6 @@ public class AttachmentResource extends AbstractResource {
     @Path("/{id}")
     public Response getAttachmentById(@PathParam("id") String id) throws Exception {
             Attachment attachment = attachmentService.getAttachmentById(UUID.fromString(id));
-            if (attachment == null) {
-                throw new IllegalArgumentException("Attachment not found");
-            }
             return Response.ok(attachment).build();
     }
 

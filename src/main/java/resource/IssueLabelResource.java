@@ -24,9 +24,6 @@ public class IssueLabelResource extends AbstractResource {
     @Path("/{id}")
     public Response getLabelById(@PathParam("id") String id) throws Exception {
             IssueLabel label = labelService.getLabelById(UUID.fromString(id));
-            if (label == null) {
-                throw new IllegalArgumentException("Label not found");
-            }
             return Response.ok(label).build();
     }
 

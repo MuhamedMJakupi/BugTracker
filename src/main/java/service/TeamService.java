@@ -14,6 +14,7 @@ public interface TeamService {
     void updateTeam(Team team) throws Exception;
     void deleteTeam(UUID teamId) throws Exception;
 
+     List<Team> getTeamsByOwner(UUID ownerId) throws Exception;
     List<Team> getTeamByName(String teamName) throws Exception;
 
     void addTeamMember(UUID teamId, UUID userId) throws Exception;

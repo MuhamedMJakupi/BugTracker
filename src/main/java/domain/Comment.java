@@ -81,11 +81,11 @@ public class Comment extends AbstractEntity {
     public List<String> validate() {
         List<String> errors = new ArrayList<>();
 
-        if (issueId == null) {
+        if (issueId == null || issueId.toString().trim().isEmpty()) {
             errors.add("Issue id is mandatory");
         }
 
-        if (userId == null) {
+        if (userId == null || userId.toString().trim().isEmpty()) {
             errors.add("User id is mandatory");
         }
 

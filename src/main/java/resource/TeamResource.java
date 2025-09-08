@@ -30,9 +30,6 @@ public class TeamResource extends AbstractResource {
     @Path("/{id}")
     public Response getTeamById(@PathParam("id") String id) throws Exception {
             Team team = teamService.getTeamById(UUID.fromString(id));
-            if(team == null) {
-                throw new IllegalArgumentException("Team not found");
-            }
             return Response.ok(team).build();
     }
 
@@ -63,6 +60,13 @@ public class TeamResource extends AbstractResource {
     public Response deleteTeam(@PathParam("id") String id) throws Exception {
             teamService.deleteTeam(UUID.fromString(id));
             return Response.ok(Map.of("message", "Team deleted successfully")).build();
+    }
+
+    @GET
+    @Path("/owner/{ownerId}")
+    public Response getTeamsByOwner(@PathParam("ownerId") String ownerId) throws Exception {
+        List<Team> teams = teamService.getTeamsByOwner(UUID.fromString(ownerId));
+        return Response.ok(teams).build();
     }
 
     @GET

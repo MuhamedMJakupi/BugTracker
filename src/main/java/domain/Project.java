@@ -86,7 +86,7 @@ public class Project extends AbstractEntity {
             errors.add("Project description cannot exceed 500 characters");
         }
 
-        if (ownerId == null) {
+        if (ownerId == null || ownerId.toString().trim().isEmpty()) {
             errors.add("Owner Id is required");
         }
         return errors;

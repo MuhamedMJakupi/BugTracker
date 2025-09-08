@@ -24,11 +24,11 @@ public class IssueLabelMapping {
     public List<String> validate() {
         List<String> errors = new ArrayList<>();
 
-        if (issueId == null) {
+        if (issueId == null || issueId.toString().trim().isEmpty())   {
             errors.add("Issue ID is required");
         }
 
-        if (labelId == null) {
+        if (labelId == null || labelId.toString().trim().isEmpty())   {
             errors.add("Label ID is required");
         }
         return errors;

@@ -9,16 +9,18 @@ import java.util.UUID;
 public class Team extends AbstractEntity {
 
     private String name;
+    private UUID ownerId;
     private String createdAt;
 
     public Team() {}
 
-    public Team(String name) {
+    public Team(String name,UUID ownerId) {
 
         setTeamId(UUID.randomUUID());
         this.createdAt = LocalDateTime.now().toString();
 
         this.name = name;
+        this.ownerId = ownerId;
     }
 
     public UUID getTeamId() {
@@ -45,11 +47,20 @@ public class Team extends AbstractEntity {
         this.createdAt = createdAt;
     }
 
+    public UUID getOwnerId() {
+        return ownerId;
+    }
+
+    public void setOwnerId(UUID ownerId) {
+        this.ownerId = ownerId;
+    }
+
     @Override
     public String toString() {
         return "Team{" +
                 "teamId=" + getTeamId() +
                 ", name='" + name + '\'' +
+                ", ownerId=" + ownerId +
                 ", createdAt=" + createdAt +
                 '}';
     }
@@ -62,6 +73,9 @@ public class Team extends AbstractEntity {
             errors.add("Team name is required");
         } else if (name.length() < 2 || name.length() > 100) {
             errors.add("Team name must be between 2 and 100 characters");
+        }
+        if (ownerId == null || ownerId.toString().trim().isEmpty()) {
+            errors.add("Team owner id is required");
         }
         return errors;
     }

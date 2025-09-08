@@ -36,6 +36,7 @@ public class AttachmentServiceImpl extends AbstractService implements  Attachmen
     }
 
     public Attachment getAttachmentById(UUID attachmentId) throws Exception {
+        validationUtils.validateAttachmentExists(attachmentId,"Attachment");
         try(Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.ATTACHMENT_BY_ID)) {
             ps.setString(1, attachmentId.toString());
             ResultSet rs = ps.executeQuery();
@@ -73,12 +74,7 @@ public class AttachmentServiceImpl extends AbstractService implements  Attachmen
         if (!errors.isEmpty()) {
             throw new IllegalArgumentException("Validation failed: " + String.join(", ", errors));
         }
-        Attachment existingAttachment = getAttachmentById(attachment.getAttachmentId());
-
-        if(existingAttachment == null) {
-            throw new IllegalArgumentException("Attachment not found: " + attachment.getAttachmentId());
-        }
-
+        validationUtils.validateAttachmentExists(attachment.getAttachmentId(),"Attachment");
         validationUtils.validateIssueExists(attachment.getIssueId(),"Issue");
         attachment.setUploadedAt(java.time.LocalDateTime.now().toString());
 
@@ -93,10 +89,7 @@ public class AttachmentServiceImpl extends AbstractService implements  Attachmen
     }
 
     public void deleteAttachment(UUID attachmentID)  throws Exception {
-        Attachment existingAttachment = getAttachmentById(attachmentID);
-        if(existingAttachment == null) {
-            throw new IllegalArgumentException("Attachment not found: " + attachmentID);
-        }
+        validationUtils.validateAttachmentExists(attachmentID,"Attachment");
         try(Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.DELETE_ATTACHMENT)) {
             ps.setString(1, attachmentID.toString());
             ps.executeUpdate();
@@ -104,6 +97,7 @@ public class AttachmentServiceImpl extends AbstractService implements  Attachmen
     }
 
     public List<Attachment> getAttachmentsByIssueId(UUID issueId) throws Exception {
+        validationUtils.validateIssueExists(issueId,"Issue");
         List<Attachment> attachments = new ArrayList<>();
         try(Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.ATTACHMENT_BY_ISSUE_ID)) {
             ps.setString(1, issueId.toString());

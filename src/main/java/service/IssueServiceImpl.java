@@ -8,11 +8,9 @@ import domain.Issue;
 import domain.IssueHistory;
 
 import java.sql.*;
+import java.sql.Date;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 public class IssueServiceImpl extends AbstractService implements IssueService {
 
@@ -79,6 +77,7 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
     }
 
     public Issue getIssueById(UUID issueId) throws Exception {
+        validationUtils.validateIssueExists(issueId, "Issue");
         try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.ISSUE_BY_ID)) {
             ps.setString(1, issueId.toString());
             ResultSet rs = ps.executeQuery();
@@ -258,10 +257,7 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
     }
 
     public void deleteIssue(UUID issueId) throws Exception {
-        Issue existingIssue = getIssueById(issueId);
-        if (existingIssue == null) {
-            throw new IllegalArgumentException("Issue not found: " + issueId);
-        }
+        validationUtils.validateIssueExists(issueId,"Issue");
         try(Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.DELETE_ISSUE)) {
             ps.setString(1, issueId.toString());
             ps.executeUpdate();
@@ -269,6 +265,7 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
     }
 
     public List<Issue> getIssueForProject(UUID projectId) throws Exception {
+        validationUtils.validateProjectExists(projectId, "Project");
         List<Issue> issues = new ArrayList<>();
         try(Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.ISSUES_FOR_PROJECT)) {
             ps.setString(1, projectId.toString());
@@ -281,6 +278,7 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
     }
 
     public List<Issue> getIssuesByReporter(UUID reporterId) throws Exception {
+        validationUtils.validateUserExists(reporterId, "Reporter");
         List<Issue> issues = new ArrayList<>();
         try (Connection con = getConnection();
              PreparedStatement ps = con.prepareStatement(SQL.SELECT_ISSUES_BY_REPORTER)) {
@@ -294,6 +292,7 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
     }
 
     public List<Issue> getIssuesByAssignee(UUID assigneeId) throws Exception {
+        validationUtils.validateUserExists(assigneeId, "Assignee");
         List<Issue> issues = new ArrayList<>();
         try (Connection con = getConnection();
              PreparedStatement ps = con.prepareStatement(SQL.SELECT_ISSUES_BY_ASSIGNEE)) {
@@ -345,9 +344,46 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
         return issues;
     }
 
+    @Override
+    public List<Map<String, Object>> getAllPriorities() throws Exception {
+        List<Map<String, Object>> priorities = new ArrayList<>();
+
+        try (Connection con = getConnection();
+             PreparedStatement ps = con.prepareStatement(SQL.GET_ALL_PRIORITIES)) {
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                priorities.add(Map.of(
+                        "id", rs.getInt("priority_id"),
+                        "name", rs.getString("name")
+                ));
+            }
+        }
+
+        return priorities;
+    }
+
+    @Override
+    public List<Map<String, Object>> getAllStatuses() throws Exception {
+        List<Map<String, Object>> statuses = new ArrayList<>();
+
+        try (Connection con = getConnection();
+             PreparedStatement ps = con.prepareStatement(SQL.GET_ALL_STATUSES)) {
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                statuses.add(Map.of(
+                        "id", rs.getInt("status_id"),
+                        "name", rs.getString("name")
+                ));
+            }
+        }
+
+        return statuses;
+    }
+
     //-----------------------------------FOR ISSUE HISTORY-------------------------------
 
     public List<IssueHistory> getIssueHistory(UUID issueId) throws Exception {
+        validationUtils.validateIssueExists(issueId, "Issue");
         List<IssueHistory> historyList = new ArrayList<>();
 
         try (Connection con = getConnection();
@@ -424,6 +460,10 @@ public class IssueServiceImpl extends AbstractService implements IssueService {
                 INSERT INTO issue_history (history_id, issue_id, changed_by_user_id, field_name, old_value, new_value, changed_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
                 """;
+
+        public static final String GET_ALL_PRIORITIES = "SELECT priority_id, name FROM issue_priorities ORDER BY priority_id";
+
+        public static final String GET_ALL_STATUSES = "SELECT status_id, name FROM issue_statuses ORDER BY status_id";
     }
 
     //---------- Down are 2 different methods of update, separately with/without history track --------------------

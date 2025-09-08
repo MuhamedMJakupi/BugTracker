@@ -35,6 +35,7 @@ public class IssueLabelServiceImpl extends AbstractService implements  IssueLabe
         return labels;
     }
     public IssueLabel getLabelById(UUID labelId) throws Exception {
+        validationUtils.validateLabelExists(labelId, "Label");
         try (Connection con = getConnection();
              PreparedStatement ps = con.prepareStatement(SQL.LABEL_BY_ID)) {
             ps.setString(1, labelId.toString());
@@ -89,10 +90,7 @@ public class IssueLabelServiceImpl extends AbstractService implements  IssueLabe
     }
 
     public void deleteLabel(UUID labelId) throws Exception {
-        IssueLabel existingLabel = getLabelById(labelId);
-        if (existingLabel == null) {
-            throw new IllegalArgumentException("Label not found: " + labelId);
-        }
+        validationUtils.validateLabelExists(labelId, "Label");
         try (Connection con = getConnection();
              PreparedStatement ps = con.prepareStatement(SQL.DELETE_LABEL)) {
             ps.setString(1, labelId.toString());
@@ -157,6 +155,7 @@ public class IssueLabelServiceImpl extends AbstractService implements  IssueLabe
     }
 
     public List<IssueLabel> getLabelsForIssue(UUID issueId) throws Exception {
+        validationUtils.validateIssueExists(issueId, "Issue");
         List<IssueLabel> labels = new ArrayList<>();
         try (Connection con = getConnection();
              PreparedStatement ps = con.prepareStatement(SQL.LABELS_FOR_ISSUE)) {

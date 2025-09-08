@@ -2,6 +2,7 @@ package service;
 
 import domain.User;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public interface UserService {
@@ -13,5 +14,7 @@ public interface UserService {
     void deleteUser(UUID userId) throws Exception;
 
     boolean authenticateUser(String email, String plainPassword) throws Exception;
+
+    List<Map<String, Object>> getAllRoles() throws Exception;
 
 }

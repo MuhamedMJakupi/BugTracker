@@ -10,6 +10,7 @@ import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class UserServiceImpl extends AbstractService implements UserService {
@@ -53,6 +54,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
     }
 
     public User getUserById(UUID id) throws Exception {
+        validationUtils.validateUserExists(id, "User");
         try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.USER_BY_ID)) {
             ps.setString(1, id.toString());
             ResultSet rs = ps.executeQuery();
@@ -122,11 +124,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
     }
 
     public void deleteUser(UUID id) throws Exception {
-        User existingUser = getUserById(id);
-        if (existingUser == null) {
-            throw new IllegalArgumentException("User not found");
-        }
-
+        validationUtils.validateUserExists(id, "User");
         try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.DELETE_USER)) {
             ps.setString(1, id.toString());
             ps.executeUpdate();
@@ -146,6 +144,21 @@ public class UserServiceImpl extends AbstractService implements UserService {
             return false;
         }
     }
+    public List<Map<String, Object>> getAllRoles() throws Exception {
+        List<Map<String, Object>> roles = new ArrayList<>();
+
+        try (Connection con = getConnection();
+             PreparedStatement ps = con.prepareStatement(SQL.GET_ALL_ROLES)) {
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                roles.add(Map.of(
+                        "id", rs.getInt("role_id"),
+                        "name", rs.getString("name")
+                ));
+            }
+        }
+        return roles;
+    }
 
     public static class SQL {
 
@@ -163,5 +176,7 @@ public class UserServiceImpl extends AbstractService implements UserService {
         public static final String DELETE_USER = "DELETE FROM users WHERE user_id=?";
 
         public static final String USER_AUTH = "SELECT password_hash FROM users WHERE email = ?";
+
+        public static final String GET_ALL_ROLES = "SELECT role_id, name FROM user_roles ORDER BY role_id";
     }
 }

@@ -8,8 +8,11 @@ import org.glassfish.jersey.server.ResourceConfig;
 public class JAXRSConfig extends ResourceConfig {
     public JAXRSConfig() {
         packages("common","resource");
-        //register(common.GsonProvider.class);
 
+        register(common.GlobalExceptionMapper.class);
+        System.out.println("GlobalExceptionMapper registered successfully");
+
+        //register(common.GsonProvider.class);
         // Force refresh of providers and resources
         //property("jersey.config.server.provider.scanning.recursive", true);
 

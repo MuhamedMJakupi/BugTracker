@@ -4,6 +4,7 @@ import domain.Issue;
 import domain.IssueHistory;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public interface IssueService {
@@ -24,6 +25,9 @@ public interface IssueService {
 
     List<IssueHistory> getIssueHistory(UUID issueId) throws Exception;
     void recordHistoryChange(IssueHistory history) throws Exception;
+
+    List<Map<String, Object>> getAllPriorities() throws Exception;
+    List<Map<String, Object>> getAllStatuses() throws Exception;
 
     //void updateIssue(Issue issue) throws Exception;
     //void updateIssueWithHistory(Issue issue, UUID changedByUserId) throws Exception;

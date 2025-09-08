@@ -180,11 +180,11 @@ public class Issue extends AbstractEntity {
             errors.add("Issue description cannot exceed 1000 characters");
         }
 
-        if (projectId == null) {
+        if (projectId == null || projectId.toString().trim().isEmpty()) {
             errors.add("Project ID is mandatory");
         }
 
-        if (reporterId == null) {
+        if (reporterId == null || reporterId.toString().trim().isEmpty()) {
             errors.add("Reporter ID is mandatory");
         }
 

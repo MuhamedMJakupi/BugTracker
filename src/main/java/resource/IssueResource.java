@@ -31,9 +31,6 @@ public class IssueResource extends AbstractResource {
     @Path("/{id}")
     public Response getIssueById(@PathParam("id") String id) throws Exception {
             Issue issue = issueService.getIssueById(UUID.fromString(id));
-            if(issue == null){
-                throw new IllegalArgumentException("Issue not found");
-            }
             return Response.ok(issue).build();
     }
 
@@ -123,6 +120,21 @@ public class IssueResource extends AbstractResource {
             List<Issue> issues = issueService.searchIssuesByTitle(title);
             return Response.ok(issues).build();
     }
+
+    @GET
+    @Path("/priorities")
+    public Response getAllPriorities() throws Exception {
+        List<Map<String, Object>> priorities = issueService.getAllPriorities();
+        return Response.ok(priorities).build();
+    }
+
+    @GET
+    @Path("/statuses")
+    public Response getAllStatuses() throws Exception {
+        List<Map<String, Object>> statuses = issueService.getAllStatuses();
+        return Response.ok(statuses).build();
+    }
+
 
     //-------------------------------for issue label mapping------------------------------------------
 

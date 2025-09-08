@@ -27,9 +27,6 @@ public class UserResource extends AbstractResource {
     @Path("/{id}")
     public Response getUserById(@PathParam("id") String id) throws Exception {
             User user = userService.getUserById(UUID.fromString(id));
-            if (user == null) {
-                throw new IllegalArgumentException("User not found");
-            }
             return Response.ok(user).build();
     }
 
@@ -95,6 +92,13 @@ public class UserResource extends AbstractResource {
             } else {
                 throw new IllegalArgumentException("Invalid email or password");
             }
+    }
+
+    @GET
+    @Path("/roles")
+    public Response getAllRoles() throws Exception {
+        List<Map<String, Object>> roles = userService.getAllRoles();
+        return Response.ok(roles).build();
     }
 }
 

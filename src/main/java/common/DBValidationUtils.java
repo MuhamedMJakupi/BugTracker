@@ -343,4 +343,16 @@ public class DBValidationUtils extends AbstractService {
             throw new IllegalArgumentException("Issue title already exists in project: " + newTitle);
         }
     }
+    public void validateCommentExists(UUID commentId, String fieldName) throws Exception {
+        if (!commentExists(commentId)) {
+            throw new IllegalArgumentException(fieldName + " comment not found: " + commentId);
+        }
+    }
+
+    public void validateAttachmentExists(UUID attachmentId, String fieldName) throws Exception {
+        if (!attachmentExists(attachmentId)) {
+            throw new IllegalArgumentException(fieldName + " attachment not found: " + attachmentId);
+        }
+    }
+
 }

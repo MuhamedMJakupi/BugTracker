@@ -20,6 +20,7 @@ public class TeamServiceImpl extends AbstractService implements TeamService {
         Team team = new Team();
         team.setTeamId(UUID.fromString(rs.getString("team_id")));
         team.setName(rs.getString("name"));
+        team.setOwnerId(UUID.fromString(rs.getString("owner_id")));
         team.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime().toString());
         return team;
     }
@@ -48,6 +49,7 @@ public class TeamServiceImpl extends AbstractService implements TeamService {
     }
 
     public Team getTeamById(UUID teamId) throws Exception {
+        validationUtils.validateTeamExists(teamId, "Team");
         try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.TEAM_BY_ID)) {
             ps.setString(1, teamId.toString());
             ResultSet rs = ps.executeQuery();
@@ -63,7 +65,7 @@ public class TeamServiceImpl extends AbstractService implements TeamService {
         if (!errors.isEmpty()) {
             throw new IllegalArgumentException("Validation failed: " + String.join(", ", errors));
         }
-
+        validationUtils.validateUserExists(team.getOwnerId(), "Owner");
         validationUtils.validateTeamNameUnique(team.getName());
         team.setTeamId(UUID.randomUUID());
         team.setCreatedAt(java.time.LocalDateTime.now().toString());
@@ -71,8 +73,9 @@ public class TeamServiceImpl extends AbstractService implements TeamService {
         try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.CREATE_TEAM)) {
             ps.setString(1, team.getTeamId().toString());
             ps.setString(2, team.getName());
+            ps.setString(3, team.getOwnerId().toString());
             LocalDateTime ldt = LocalDateTime.parse(team.getCreatedAt());
-            ps.setTimestamp(3, Timestamp.valueOf(ldt));
+            ps.setTimestamp(4, Timestamp.valueOf(ldt));
             ps.executeUpdate();
         }
         return team;
@@ -84,30 +87,38 @@ public class TeamServiceImpl extends AbstractService implements TeamService {
             throw new IllegalArgumentException("Validation failed: " + String.join(", ", errors));
         }
 
-        Team existingTeam = getTeamById(team.getTeamId());
-        if(existingTeam == null) {
-            throw new IllegalArgumentException("Team not found: " + team.getTeamId());
-        }
-
+        validationUtils.validateTeamExists(team.getTeamId(), "Team");
+        validationUtils.validateUserExists(team.getOwnerId(), "Owner");
         validationUtils.validateTeamNameUniqueForUpdate(team.getName(), team.getTeamId());
 
         try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.UPDATE_TEAM)) {
             ps.setString(1, team.getName());
-            ps.setString(2, team.getTeamId().toString());
+            ps.setString(2, team.getOwnerId().toString());
+            ps.setString(3, team.getTeamId().toString());
             ps.executeUpdate();
         }
     }
 
     public void deleteTeam(UUID teamId) throws Exception {
-        Team existingTeam = getTeamById(teamId);
-        if (existingTeam == null) {
-            throw new IllegalArgumentException("Team not found: " + teamId);
-        }
+        validationUtils.validateTeamExists(teamId, "Team");
 
         try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.DELETE_TEAM)) {
             ps.setString(1, teamId.toString());
             ps.executeUpdate();
         }
+    }
+
+    public List<Team> getTeamsByOwner(UUID ownerId) throws Exception {
+        validationUtils.validateUserExists(ownerId, "Owner");
+        List<Team> teams = new ArrayList<>();
+        try (Connection con = getConnection(); PreparedStatement ps = con.prepareStatement(SQL.TEAMS_BY_OWNER)) {
+            ps.setString(1, ownerId.toString());
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                teams.add(mapTeam(rs));
+            }
+        }
+        return teams;
     }
 
     public List<Team> getTeamByName(String teamName) throws Exception {
@@ -165,9 +176,7 @@ public class TeamServiceImpl extends AbstractService implements TeamService {
     }
 
     public List<User> getTeamMembers(UUID teamId) throws Exception {
-        if (getTeamById(teamId) == null) {
-            throw new IllegalArgumentException("Team not found");
-        }
+        validationUtils.validateTeamExists(teamId, "Team");
 
         List<User> members = new ArrayList<>();
         try (Connection con = getConnection();
@@ -200,10 +209,10 @@ public class TeamServiceImpl extends AbstractService implements TeamService {
 
         public static final String ALL_TEAMS = "SELECT * FROM teams";
         public static final String TEAM_BY_ID = "SELECT * FROM teams WHERE team_id = ?";
-        public static final String CREATE_TEAM="INSERT INTO teams (team_id, name, created_at) VALUES (?, ?, ?)";
-        public static final String UPDATE_TEAM = "UPDATE teams SET name = ? WHERE team_id = ?";
+        public static final String CREATE_TEAM = "INSERT INTO teams (team_id, name, owner_id, created_at) VALUES (?, ?, ?, ?)";
+        public static final String UPDATE_TEAM = "UPDATE teams SET name = ?, owner_id = ? WHERE team_id = ?";
         public static final String DELETE_TEAM = "DELETE FROM teams WHERE team_id = ?";
-
+        public static final String TEAMS_BY_OWNER = "SELECT * FROM teams WHERE owner_id = ? ORDER BY created_at DESC";
         public static final String TEAM_BY_NAME = "SELECT * FROM teams WHERE name LIKE ?";
 
         public static final String ADD_TEAM_MEMBER =
@@ -216,6 +225,4 @@ public class TeamServiceImpl extends AbstractService implements TeamService {
                 "SELECT t.* FROM teams t JOIN team_members tm ON t.team_id = tm.team_id WHERE tm.user_id = ?";
 
     }
-
-
 }

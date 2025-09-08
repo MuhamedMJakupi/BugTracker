@@ -34,11 +34,11 @@ public class TeamMember {
     public List<String> validate() {
         List<String> errors = new ArrayList<>();
 
-        if (teamId == null) {
+        if (teamId == null || teamId.toString().trim().isEmpty()) {
             errors.add("Team ID is required");
         }
 
-        if (userId == null) {
+        if (userId == null || userId.toString().trim().isEmpty()) {
             errors.add("User ID is required");
         }
 

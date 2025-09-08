@@ -80,7 +80,7 @@ public class Attachment extends AbstractEntity {
     public List<String> validate() {
         List<String> errors = new ArrayList<>();
 
-        if (issueId == null) {
+        if (issueId == null || issueId.toString().trim().isEmpty()) {
             errors.add("Issue Id is required");
         }
 

@@ -48,11 +48,11 @@ public class IssueHistory extends AbstractEntity {
     public List<String> validate() {
         List<String> errors = new ArrayList<>();
 
-        if (issueId == null) {
+        if (issueId == null || issueId.toString().trim().isEmpty())   {
             errors.add("Issue ID is required");
         }
 
-        if (changedByUserId == null) {
+        if (changedByUserId == null || changedByUserId.toString().trim().isEmpty())   {
             errors.add("Changed by user ID is required");
         }
 
